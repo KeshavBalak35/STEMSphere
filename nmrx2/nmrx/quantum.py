@@ -7,7 +7,6 @@ EV_PER_HARTREE = 27.211386245981
 
 def calculate(payload):
     from pyscf import gto, scf, dft, lib
-    from pyscf.geomopt.geometric_solver import kernel as optimize_kernel
     from .models import Quantum
     req = Quantum.model_validate(payload)
     # Some container PID namespaces expose /proc without the process's own PID.
@@ -39,6 +38,14 @@ def calculate(payload):
         return mf
     mf = solve(mol)
     if req.optimize:
+        # geomeTRIC is an optional extra. Import it only when an optimization is
+        # actually requested, so a deployment without it can still run single-point
+        # jobs instead of failing at import time.
+        try:
+            from pyscf.geomopt.geometric_solver import kernel as optimize_kernel
+        except ImportError as exc:
+            raise RuntimeError('Geometry optimization requires the separately installed '
+                               'geomeTRIC package; submit optimize=false to run a single point') from exc
         converged, mol = optimize_kernel(mf, maxsteps=100)
         if not converged: raise ValueError('Geometry optimization failed to converge')
         mf = solve(mol)

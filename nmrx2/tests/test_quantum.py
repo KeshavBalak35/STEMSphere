@@ -32,3 +32,21 @@ def test_real_water_nmr(method):
     assert len(s)==3 and abs(s[1]-s[2])<0.05
     assert 15<s[1]<50
     assert r['nmr']['chemical_shifts_ppm']==[None,None,None]
+
+
+def test_single_point_does_not_require_the_optimizer(monkeypatch):
+    """geomeTRIC is an optional extra; its absence must not block single-point jobs."""
+    pytest.importorskip('pyscf')
+    import builtins
+    real = builtins.__import__
+
+    def blocked(name, *args, **kw):
+        if name.startswith('geometric') or 'geometric_solver' in name:
+            raise ImportError('geometric is not installed')
+        return real(name, *args, **kw)
+
+    monkeypatch.setattr(builtins, '__import__', blocked)
+    from nmrx.quantum import calculate
+    result = calculate({'smiles': 'O', 'task': 'orbitals', 'method': 'HF',
+                        'basis': 'sto-3g', 'optimize': False, 'conformers': 1})
+    assert result['scf_converged'] and result['homo_ev'] < 0

@@ -51,6 +51,7 @@ Poll `/v1/jobs/<returned-id>` with the same key. Status progresses through queue
 - Lowest sampled converged MMFF conformer, optional geomeTRIC optimization. No verified global minimum, protonation/tautomer enumeration or automatic thermodynamic ensemble. `mathcore.ensemble` is a separate Python utility.
 - NMR returns atom-indexed shieldings. Shifts remain null unless caller supplies reference shieldings and method/environment provenance. No invented reference values or spin-coupling/multiplet simulation.
 - Calibration converts shieldings to shifts with a distribution-free coverage guarantee, and abstains when the corpus cannot support the requested level. See `docs/CALIBRATION.md`. The math is tested; no reference corpus ships with this release.
+- `nmrx.harvest` ingests public spectral databases into calibration corpora, carrying licence status per source and refusing sources whose terms prohibit bulk retrieval. See `docs/HARVEST.md`. No data is bundled.
 - IR returns unscaled harmonic frequencies and normalized relative intensities, not absolute km/mol. Imaginary modes are flagged.
 - Docking requires externally prepared rigid receptor PDBQT, a justified box and preparation notes. Meeko prepares the ligand; Vina returns scores and poses. No automatic receptor repair, pocket detection, covalent or metal-aware docking.
 - No radicals, metals, salts/mixtures, excited states, periodic systems or whole-protein QM in this release. No orbital cube export.
@@ -70,3 +71,14 @@ Before public release: add OIDC/SSO, TLS, per-user rate/spend limits, leased dur
 A worker crash can leave a running job. Stop/reconcile its child process before an operator marks it failed; this alpha does not automatically requeue or implement leases. SQLite is for a single-host pilot. `tested-versions.json` records this environment; dependencies must be resolved and hash-locked for deployment.
 
 Run `OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 python -m pytest -q`. Read `docs/VERIFICATION.md` for actual evidence, `docs/SCIENCE.md` for equations, and `docs/PRODUCT.md` for competitive positioning.
+
+## Harvest
+
+`python -m nmrx.harvest.cli sources` lists every public spectral source with its
+licence, bulk-access status and whether it is usable commercially. `ingest` parses
+a bulk file into filtered, deduplicated records and reports which provenance
+slices are large enough to calibrate. `jobs` emits the quantum NMR payloads the
+corpus still needs, because no public database carries computed shieldings.
+
+Sources whose terms prohibit bulk download are excluded by policy, not by
+capability. See `docs/HARVEST.md`.

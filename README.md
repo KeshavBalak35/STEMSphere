@@ -56,6 +56,7 @@ rule.
 
 - Backend overview and setup: [`nmrx2/README.md`](nmrx2/README.md)
 - Calibration math, measured coverage and abstention rules: [`nmrx2/docs/CALIBRATION.md`](nmrx2/docs/CALIBRATION.md)
+- Public data sources, licences and the ingestion pipeline: [`nmrx2/docs/HARVEST.md`](nmrx2/docs/HARVEST.md)
 - Science scope and limits: [`nmrx2/docs/SCIENCE.md`](nmrx2/docs/SCIENCE.md)
 
 It is a separate Python package with its own dependencies and does not affect the
