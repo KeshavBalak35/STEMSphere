@@ -1,0 +1,165 @@
+{
+  "preparation": {
+    "canonical_smiles": "O",
+    "formula": "H2O",
+    "molecular_weight": 18.015,
+    "charge": 0,
+    "atom_symbols": [
+      "O",
+      "H",
+      "H"
+    ],
+    "coordinates_angstrom": [
+      [
+        0.007544053151178948,
+        0.39774343120556577,
+        0.0
+      ],
+      [
+        -0.7671031370575064,
+        -0.18439316493074823,
+        0.0
+      ],
+      [
+        0.7595590839063272,
+        -0.21335026627481796,
+        0.0
+      ]
+    ],
+    "selected_conformer_id": 0,
+    "conformers": [
+      {
+        "id": 0,
+        "mmff_energy_kcal_mol": 2.52287230445643e-10
+      }
+    ],
+    "warnings": [
+      "MMFF selection is not a thermodynamic conformer ensemble; protonation and tautomers were not enumerated"
+    ]
+  },
+  "method": "HF",
+  "basis": "sto-3g",
+  "environment": "gas phase",
+  "engine": "PySCF",
+  "engine_version": "2.14.0",
+  "energy_hartree": -74.96444912178335,
+  "homo_ev": -10.637167922146176,
+  "lumo_ev": 16.189701200980895,
+  "orbital_gap_ev": 26.82686912312707,
+  "orbital_energies_ev": [
+    -550.865079696249,
+    -34.37022237815353,
+    -16.622476306833086,
+    -12.32329211516198,
+    -10.637167922146176,
+    16.189701200980895,
+    19.780524853271494
+  ],
+  "occupations": [
+    2.0,
+    2.0,
+    2.0,
+    2.0,
+    2.0,
+    0.0,
+    0.0
+  ],
+  "coordinates_angstrom": [
+    [
+      0.007544053151178948,
+      0.3977434312055657,
+      0.0
+    ],
+    [
+      -0.7671031370575064,
+      -0.18439316493074823,
+      0.0
+    ],
+    [
+      0.7595590839063272,
+      -0.21335026627481796,
+      0.0
+    ]
+  ],
+  "gradient_max_hartree_bohr": 0.04257828304873135,
+  "scf_converged": true,
+  "warnings": [
+    "MMFF selection is not a thermodynamic conformer ensemble; protonation and tautomers were not enumerated",
+    "Orbital gap is not an optical gap or measured redox potential",
+    "Single selected conformer; gas-phase calculation; no solvent or temperature correction",
+    "SCF convergence does not establish wavefunction stability or global geometry minimum",
+    "Shifts require same-level reference shieldings; coupling, exchange and full multiplets are not calculated"
+  ],
+  "nmr": {
+    "shielding_tensors_ppm": [
+      [
+        [
+          361.5036263487454,
+          -0.11128253689179374,
+          -3.2624942528470824e-14
+        ],
+        [
+          -0.11130247816317237,
+          355.64475087989643,
+          4.070823852519728e-15
+        ],
+        [
+          -3.910924003291257e-15,
+          -6.219556376199967e-14,
+          359.89947677187837
+        ]
+      ],
+      [
+        [
+          40.36442971520391,
+          3.712803953253632,
+          -1.5323094603148649e-15
+        ],
+        [
+          6.545756549510195,
+          32.780081866383064,
+          1.3994724653216577e-16
+        ],
+        [
+          -2.949315194579291e-15,
+          1.1186623337167524e-15,
+          26.836478749593894
+        ]
+      ],
+      [
+        [
+          39.9647735187194,
+          -3.9854498133638585,
+          2.285116713474701e-15
+        ],
+        [
+          -6.8184000488716325,
+          33.17972363521983,
+          -7.140884319191418e-16
+        ],
+        [
+          8.604414713212688e-16,
+          2.0846493512081576e-15,
+          26.83647679109677
+        ]
+      ]
+    ],
+    "isotropic_shielding_ppm": [
+      359.01595133350673,
+      33.326996777060295,
+      33.326991315012
+    ],
+    "chemical_shifts_ppm": [
+      null,
+      null,
+      null
+    ],
+    "reference_provenance": null,
+    "atom_index_base": 0,
+    "atom_symbols": [
+      "O",
+      "H",
+      "H"
+    ]
+  }
+}

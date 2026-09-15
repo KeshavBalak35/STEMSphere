@@ -1,0 +1,110 @@
+{
+  "preparation": {
+    "canonical_smiles": "O",
+    "formula": "H2O",
+    "molecular_weight": 18.015,
+    "charge": 0,
+    "atom_symbols": [
+      "O",
+      "H",
+      "H"
+    ],
+    "coordinates_angstrom": [
+      [
+        0.007544053151178948,
+        0.39774343120556577,
+        0.0
+      ],
+      [
+        -0.7671031370575064,
+        -0.18439316493074823,
+        0.0
+      ],
+      [
+        0.7595590839063272,
+        -0.21335026627481796,
+        0.0
+      ]
+    ],
+    "selected_conformer_id": 0,
+    "conformers": [
+      {
+        "id": 0,
+        "mmff_energy_kcal_mol": 2.52287230445643e-10
+      }
+    ],
+    "warnings": [
+      "MMFF selection is not a thermodynamic conformer ensemble; protonation and tautomers were not enumerated"
+    ]
+  },
+  "method": "HF",
+  "basis": "sto-3g",
+  "environment": "gas phase",
+  "engine": "PySCF",
+  "engine_version": "2.14.0",
+  "energy_hartree": -74.96590118756171,
+  "homo_ev": -10.683760248386381,
+  "lumo_ev": 15.830936297439393,
+  "orbital_gap_ev": 26.514696545825775,
+  "orbital_energies_ev": [
+    -551.073858873426,
+    -34.21947719755172,
+    -16.158797293453915,
+    -12.510306410683999,
+    -10.683760248386381,
+    15.830936297439393,
+    18.847059181119864
+  ],
+  "occupations": [
+    2.0,
+    2.0,
+    2.0,
+    2.0,
+    2.0,
+    0.0,
+    0.0
+  ],
+  "coordinates_angstrom": [
+    [
+      0.008039231884065587,
+      0.4238422347030221,
+      -1.8069155399157274e-15
+    ],
+    [
+      -0.7619425618283826,
+      -0.19754520801039596,
+      -1.7284145267207963e-16
+    ],
+    [
+      0.753903329944385,
+      -0.2262970266923845,
+      2.4599581067971022e-15
+    ]
+  ],
+  "gradient_max_hartree_bohr": 7.302884286941591e-05,
+  "scf_converged": true,
+  "warnings": [
+    "MMFF selection is not a thermodynamic conformer ensemble; protonation and tautomers were not enumerated",
+    "Orbital gap is not an optical gap or measured redox potential",
+    "Single selected conformer; gas-phase calculation; no solvent or temperature correction",
+    "SCF convergence does not establish wavefunction stability or global geometry minimum"
+  ],
+  "ir": {
+    "frequencies_cm-1": [
+      2169.94374978047,
+      4139.340298726298,
+      4390.284788221505
+    ],
+    "relative_intensities": [
+      0.16328875519279948,
+      1.0,
+      0.6769686326223562
+    ],
+    "rigid_mode_rank": 6,
+    "imaginary_modes_below_minus20": 0,
+    "displacement_bohr": 0.005,
+    "hessian_asymmetry_max": 6.609950177483004e-06,
+    "intensity_units": "normalized relative; not km/mol",
+    "frequency_scale_factor": 1.0
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "preparation": {
+    "canonical_smiles": "CCO",
+    "formula": "C2H6O",
+    "molecular_weight": 46.06900000000002,
+    "charge": 0,
+    "atom_symbols": [
+      "C",
+      "C",
+      "O",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H",
+      "H"
+    ],
+    "coordinates_angstrom": [
+      [
+        -0.8883105789146075,
+        0.16700318046491847,
+        -0.027315888644388317
+      ],
+      [
+        0.46575304251064414,
+        -0.5115589697926904,
+        -0.03679533269112991
+      ],
+      [
+        1.4310747878866399,
+        0.32291622253101715,
+        0.5866699933916627
+      ],
+      [
+        -0.8487409911330427,
+        1.1174800549232302,
+        -0.5695241285818173
+      ],
+      [
+        -1.6471213401508444,
+        -0.4704427172029078,
+        -0.4896365991759603
+      ],
+      [
+        -1.1963971221117973,
+        0.3978445473346262,
+        0.9977232020308682
+      ],
+      [
+        0.7919970007730801,
+        -0.7224282495020085,
+        -1.0597258423881726
+      ],
+      [
+        0.42460365443477543,
+        -1.4558617236098907,
+        0.5137906469458918
+      ],
+      [
+        1.467141546705119,
+        1.1550476548537008,
+        0.0848139491130474
+      ]
+    ],
+    "selected_conformer_id": 0,
+    "conformers": [
+      {
+        "id": 0,
+        "mmff_energy_kcal_mol": -1.3368570639146022
+      }
+    ],
+    "warnings": [
+      "MMFF selection is not a thermodynamic conformer ensemble; protonation and tautomers were not enumerated"
+    ]
+  },
+  "engine": "AutoDock Vina",
+  "scores_kcal_mol": [
+    -0.139
+  ],
+  "poses_pdbqt": "MODEL 1\nREMARK VINA RESULT:    -0.139      0.000      0.000\nREMARK INTER + INTRA:          -0.143\nREMARK INTER:                  -0.143\nREMARK INTRA:                   0.000\nREMARK UNBOUND:                 0.000\nREMARK SMILES CCO\nREMARK SMILES IDX 1 1 2 2 3 3\nREMARK H PARENT 3 4\nROOT\nATOM      1  C   UNL     1       0.903   2.401  -2.807  1.00  0.00    +0.034 C \nATOM      2  C   UNL     1       0.024   1.404  -3.534  1.00  0.00    +0.152 C \nENDROOT\nBRANCH   2   3\nATOM      3  O   UNL     1       0.648   0.128  -3.547  1.00  0.00    -0.397 OA\nATOM      4  H   UNL     1       1.480   0.214  -4.042  1.00  0.00    +0.210 HD\nENDBRANCH   2   3\nTORSDOF 1\nENDMDL\n",
+  "center_angstrom": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "box_angstrom": [
+    10.0,
+    10.0,
+    10.0
+  ],
+  "receptor_preparation_notes": "Synthetic single-atom test fixture; no biological interpretation",
+  "warnings": [
+    "Docking scores are heuristic rankings, not experimental binding free energies or efficacy",
+    "Rigid receptor; no covalent docking, metal-specific scoring, or water/protonation sampling",
+    "Receptor biological assembly, missing residues and charges require external preparation",
+    "Pose contacts/clashes and enrichment/redocking benchmarks remain required before conclusions"
+  ]
+}

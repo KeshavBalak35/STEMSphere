@@ -1,0 +1,16 @@
+{
+  "fastapi": "0.141.1",
+  "uvicorn": "0.52.4",
+  "pydantic": "2.13.5",
+  "numpy": "2.3.5",
+  "scipy": "1.17.0",
+  "rdkit": "2026.3.6",
+  "pyscf": "2.14.0",
+  "pyscf-properties": "0.1.0",
+  "geometric": "1.1.1",
+  "vina": "1.2.7",
+  "meeko": "0.8.0",
+  "gemmi": "0.7.5",
+  "httpx": "0.28.1",
+  "pytest": "9.1.1"
+}

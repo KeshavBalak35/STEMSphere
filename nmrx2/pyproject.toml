@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "nmrx2-backend"
+version = "0.1.0"
+description = "Auditable molecular spectroscopy and docking research backend"
+requires-python = ">=3.11"
+dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.30,<1", "pydantic>=2.8,<3", "numpy>=1.26,<3", "scipy>=1.12,<2", "rdkit>=2024.3", "httpx>=0.27,<1"]
+[project.optional-dependencies]
+quantum = ["pyscf>=2.7,<3", "geometric>=1.0,<2"]
+docking = ["vina>=1.2.5,<2", "meeko>=0.6,<1", "gemmi>=0.6,<1"]
+test = ["pytest>=8,<10"]
+[tool.setuptools.packages.find]
+include = ["nmrx*"]
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -42,3 +42,21 @@ The website will serve as the central hub for our students, parents, and partner
 - **Visual Studio Code**
 
 ---
+
+---
+
+## 🧪 NMRx 2.0 Research Backend
+
+`nmrx2/` holds the NMRx computational chemistry backend: a FastAPI service over
+PySCF electronic structure, GIAO NMR shielding, finite-difference harmonic IR,
+RDKit molecule preparation, AutoDock Vina docking, a persistent job queue, and a
+conformal calibration layer that converts computed shieldings into chemical
+shifts with a distribution-free coverage guarantee and an explicit abstention
+rule.
+
+- Backend overview and setup: [`nmrx2/README.md`](nmrx2/README.md)
+- Calibration math, measured coverage and abstention rules: [`nmrx2/docs/CALIBRATION.md`](nmrx2/docs/CALIBRATION.md)
+- Science scope and limits: [`nmrx2/docs/SCIENCE.md`](nmrx2/docs/SCIENCE.md)
+
+It is a separate Python package with its own dependencies and does not affect the
+Streamlit site in `app.py`.
