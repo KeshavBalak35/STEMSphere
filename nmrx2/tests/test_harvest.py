@@ -188,3 +188,48 @@ def test_cli_jobs_counts_distinct_structures(tmp_path, capsys):
 def test_cli_sources_lists_the_registry(capsys):
     assert main(['sources']) == 0
     assert 'prohibited' in capsys.readouterr().out
+
+
+def test_indexed_metadata_is_attached_to_the_right_spectrum(tmp_path):
+    """NMRShiftDB keys solvent by spectrum number; one molecule can carry several."""
+    from nmrx.harvest.nmrshiftdb import parse_indexed
+    assert parse_indexed('0:Chloroform-D1 (CDCl3) 1:Unreported') == {
+        0: 'Chloroform-D1 (CDCl3)', 1: 'Unreported'}
+    assert parse_indexed('CDCl3') == {None: 'CDCl3'}
+    assert parse_indexed('') == {}
+
+    path = tmp_path / 'two.sdf'
+    _write_sdf(path, [('m', 'CCO', {
+        'Spectrum 13C 0': '58.4;0.0;0|18.2;0.0;1|',
+        'Spectrum 13C 1': '58.9;0.0;0|18.6;0.0;1|',
+        'Solvent': '0:Chloroform-D1 (CDCl3) 1:Dimethylsulphoxide-D6 (DMSO-D6, C2D6SO))',
+        'Field Strength [MHz]': '0:125 1:Unreported',
+        'NMRStandard': '0:TMS 1:Unreported'}, False)])
+    by_number = {r['spectrum_number']: r for r in load(path)}
+    assert by_number[0]['solvent'] == 'CDCl3' and by_number[1]['solvent'] == 'DMSO-d6'
+    assert by_number[0]['field_mhz'] == 125.0 and by_number[1]['field_mhz'] is None
+    assert by_number[0]['reference_compound'] == 'TMS'
+    assert by_number[1]['reference_compound'] is None       # 'Unreported' is not a reference
+
+
+def test_unreported_never_becomes_a_solvent():
+    assert normalize_solvent('Unreported') is None
+    assert normalize_solvent('Chloroform-D1 (CDCl3)') == 'CDCl3'
+    assert normalize_solvent('Dimethylsulphoxide-D6 (DMSO-D6, C2D6SO))') == 'DMSO-d6'
+
+
+def test_corpus_majority_resolves_individually_ambiguous_records(tmp_path):
+    """One spectrum can fit both conventions; a whole file rarely does."""
+    from nmrx.harvest.nmrshiftdb import resolve_index_bases
+    unambiguous = {'index_base_detected': 0, 'nucleus': '13C', 'unusable_reason': None,
+                   'nuclei': [{'atom_index': 0, 'observed_shift_ppm': 1.0}],
+                   '_atom_symbols': ['C', 'C', 'C'], '_has_explicit_h': True}
+    ambiguous = dict(unambiguous, index_base_detected=None,
+                     nuclei=[{'atom_index': 1, 'observed_shift_ppm': 2.0}])
+    out = resolve_index_bases([dict(unambiguous), dict(unambiguous), dict(ambiguous)])
+    assert out[2]['index_base_source'] == 'corpus_majority'
+    assert out[2]['unusable_reason'] is None and out[2]['nuclei'][0]['atom_index'] == 1
+
+    split = resolve_index_bases([dict(unambiguous), dict(unambiguous, index_base_detected=1),
+                                 dict(ambiguous)])
+    assert split[2]['unusable_reason'] == 'ambiguous_atom_index_base'   # file is inconsistent

@@ -51,6 +51,51 @@ the guarantee forbids.
 threshold, and how many molecules are stranded below it. Expect the stranded
 count to be large. A 44,000 record harvest is not a 44,000 molecule corpus.
 
+## What was actually harvested
+
+Only code hosts were reachable from the build environment, so every scientific
+database returned 403 and the harvest ran against public git repositories.
+
+**CASCADE** (Paton lab, Chem. Sci. 2021) turned out to be the most valuable
+public source found, because it is the only one carrying both halves of a
+calibration record: experimental 13C shifts and DFT values at one fixed level.
+5,006 molecules and 52,986 assigned carbons survive the pipeline.
+
+Two findings about it, both load-bearing.
+
+**Do not join NMR8K to DFT8K by atom index.** The 2D and 3D files do not share
+atom numbering. Joining them directly gives residuals with a 99th percentile of
+93 ppm and a maximum of 208 ppm, which is misalignment, not method error. The
+conformal layer reported it honestly as 87 to 141 ppm intervals, which is what a
+calibration layer is for. Shifts are therefore taken from Exp5K, CASCADE's own
+curated pairing, and NMRShiftDB metadata is joined per molecule only.
+
+**Exp5K is filtered by agreement.** It is the subset of NMR8K that already
+matched the DFT calculation, about five thousand of eight thousand molecules,
+with residuals truncated near 6 ppm. The molecules where the method fails were
+removed before calibration, so intervals fitted on it are optimistic for
+molecules from the wild. Every corpus this adapter builds carries that warning.
+It should not be edited out, and coverage should be re-validated on a corpus that
+was never filtered by agreement before it is quoted to a user.
+
+### Provenance is the binding constraint, not volume
+
+Parsing the raw NMRShiftDB-derived SDF gives 9,266 spectrum records over 7,997
+molecules. After removing 1H assignments that cannot be indexed because the
+structures carry implicit hydrogens, 6,261 remain. Of those:
+
+| Field | Recorded |
+|---|---|
+| Solvent | 630 of 6,261 |
+| Reference compound | 0 of 6,261 |
+| Field strength | 520 of 6,261 |
+
+So the largest properly-provenanced slice is 13C in CDCl3 with an unrecorded
+reference, a few hundred molecules, not tens of thousands. The rest is one large
+pool whose solvent nobody wrote down. That pool still calibrates, and the code
+labels it `mixed_or_unreported` rather than pretending otherwise, but it cannot
+support a claim about any particular solvent.
+
 ## The expensive half
 
 Every surviving molecule still needs a GIAO NMR calculation at the corpus level
@@ -63,8 +108,19 @@ Two practical consequences:
 - Harvest broadly, compute selectively. Choose the slice you intend to serve
   first, usually 13C in CDCl3 referenced to TMS, and compute only that.
 - Benchmark one representative molecule at your chosen level before committing to
-  a corpus size. Cost scales steeply with basis set and atom count, so measure it
-  rather than estimating it.
+  a corpus size. Measured single-threaded with no geometry optimisation:
+
+| Molecule | Atoms | STO-3G | def2-SVP |
+|---|---|---|---|
+| ethanol | 9 | 4.8 s | 14.7 s |
+| phenol | 13 | 16.2 s | 71.2 s |
+| paracetamol | 20 | 46.2 s | 378 s |
+| ibuprofen | 33 | 123 s | 1,262 s |
+
+  A drug-sized molecule at def2-SVP is 21 CPU-minutes before any geometry
+  optimisation, and def2-TZVP is substantially worse. A thousand-molecule corpus
+  at that size is on the order of 350 CPU-hours. This is why CASCADE matters: its
+  DFT half is already computed.
 
 ## Pipeline
 

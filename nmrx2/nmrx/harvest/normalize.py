@@ -32,6 +32,7 @@ _SOLVENT_ALIASES = {
     "acetone-d6": "acetone-d6", "cd3cocd3": "acetone-d6",
     "acetonitrile-d3": "CD3CN", "cd3cn": "CD3CN",
     "gas": "gas phase", "gas phase": "gas phase", "none": None, "unknown": None, "": None,
+    "unreported": None, "notreported": None, "notgiven": None,
 }
 
 
@@ -44,11 +45,16 @@ def normalize_solvent(raw):
     """
     if raw is None:
         return None
-    key = re.sub(r"[\s_]+", "", str(raw).strip().lower())
+    text = str(raw).strip()
+    inner = re.search(r"\(([^()]+)\)", text)
+    if inner:
+        candidate = re.sub(r"[\s_]+", "", inner.group(1).split(",")[0].lower())
+        if candidate in _SOLVENT_ALIASES:
+            return _SOLVENT_ALIASES[candidate]
+    key = re.sub(r"[\s_]+", "", text.lower())
     if key in _SOLVENT_ALIASES:
         return _SOLVENT_ALIASES[key]
-    spaced = str(raw).strip().lower()
-    return _SOLVENT_ALIASES.get(spaced, str(raw).strip() or None)
+    return _SOLVENT_ALIASES.get(text.lower(), text or None)
 
 
 def record_id(source, native_id, nucleus, solvent):

@@ -82,3 +82,9 @@ corpus still needs, because no public database carries computed shieldings.
 
 Sources whose terms prohibit bulk download are excluded by policy, not by
 capability. See `docs/HARVEST.md`.
+
+`nmrx.harvest.cascade` downloads and pairs the CASCADE dataset, the one public
+source found that ships both experimental 13C shifts and DFT values at a fixed
+level. About 5,000 molecules and 53,000 assigned carbons. Its selection caveat is
+attached to every corpus it builds and matters: the set is filtered by agreement
+with the calculation, so intervals fitted on it are optimistic.

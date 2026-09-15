@@ -10,8 +10,9 @@ TRUE_INTERCEPT, TRUE_SLOPE = 31.0, -1.02
 PROVENANCE = {'method': 'B3LYP', 'basis': 'def2-tzvp', 'nucleus': '1H',
               'solvent': 'CDCl3', 'reference_compound': 'TMS'}
 
-def molecule(rng, ident, nuclei=6, offset=0.0, span=(22.0, 32.0)):
+def molecule(rng, ident, nuclei=None, offset=0.0, span=(22.0, 32.0)):
     """Synthetic record with a molecule-level offset, so nuclei are correlated."""
+    nuclei = nuclei or int(rng.integers(2, 9))
     sigma = rng.uniform(*span, size=nuclei)
     shift = TRUE_INTERCEPT + TRUE_SLOPE*sigma + rng.normal(0, 0.10) + rng.normal(0, 0.12, size=nuclei)
     if offset: shift[0] += offset
@@ -64,7 +65,7 @@ def test_small_set_abstains_and_states_the_required_size():
     assert assess_identity(model, [25.0], [5.0])['verdict'] == 'abstained'
 
 def test_usable_model_reports_a_finite_simultaneous_interval():
-    model = build(corpus(), alpha=0.05)
+    model = build(corpus(count=200), alpha=0.05)
     assert model['usable'] and 0 < model['molecule_interval_ppm'] < 2
     out = predict(model, [24.0, 28.0], ['H', 'H'])
     assert out['status'] == 'predicted' and len(out['intervals_ppm']) == 2
@@ -77,14 +78,17 @@ def test_empirical_simultaneous_coverage_meets_the_nominal_level():
     hit = []
     for seed in range(300):
         rng = np.random.default_rng(10_000 + seed)
-        model = build({'provenance': PROVENANCE, 'records': [molecule(rng, 'm%d' % i) for i in range(60)]},
+        model = build({'provenance': PROVENANCE, 'records': [molecule(rng, 'm%d' % i) for i in range(240)]},
                       alpha=0.1, seed=seed)
         probe = molecule(rng, 'probe')
         sigma = [n['shielding_ppm'] for n in probe['nuclei']]
         observed = np.array([n['observed_shift_ppm'] for n in probe['nuclei']])
-        bounds = np.array(predict(model, sigma)['intervals_ppm'])
+        out = predict(model, sigma)
+        if out['status'] == 'abstained':
+            continue          # coverage is claimed only where the model does not abstain
+        bounds = np.array(out['intervals_ppm'])
         hit.append(bool(np.all((observed >= bounds[:, 0]) & (observed <= bounds[:, 1]))))
-    assert np.mean(hit) >= 0.87
+    assert len(hit) >= 200 and np.mean(hit) >= 0.87
 
 def test_matching_spectrum_is_not_rejected_and_decoy_is():
     rng = np.random.default_rng(7)
@@ -99,16 +103,16 @@ def test_matching_spectrum_is_not_rejected_and_decoy_is():
     assert verdict['conformal_p_value'] <= 0.05 and verdict['worst_nucleus_index'] == 2
 
 def test_absence_of_rejection_is_never_stated_as_confirmation():
-    model = build(corpus(), alpha=0.05)
+    model = build(corpus(count=200), alpha=0.05)
     out = assess_identity(model, [25.0, 26.0], [5.5, 4.4])
     assert out['verdict'] in ('not_contradicted', 'inconsistent', 'abstained')
     assert 'not confirmation' in out['interpretation']
 
 def test_extrapolation_beyond_the_fitted_range_abstains():
-    model = build(corpus(), alpha=0.05)
+    model = build(corpus(count=200), alpha=0.05)
     far = float(model['scaling']['shielding_range_ppm'][1]) + 40.0
-    assert predict(model, [far])['extrapolated_nucleus_indices'] == [0]
-    out = assess_identity(model, [far], [0.0])
+    assert predict(model, [far, far])['extrapolated_nucleus_indices'] == [0, 1]
+    out = assess_identity(model, [far, far], [0.0, 0.0])
     assert out['verdict'] == 'abstained' and out['abstention']['reason'] == 'outside_calibration_domain'
 
 def test_mixed_provenance_is_refused():
@@ -135,7 +139,8 @@ def test_fit_endpoint_returns_a_usable_model(client):
     assert any('exchangeable' in w for w in body['warnings'])
 
 def test_shifts_endpoint_returns_intervals(client):
-    payload = {'calibration': corpus(), 'isotropic_shielding_ppm': [24.0, 27.5], 'atom_symbols': ['H', 'H']}
+    payload = {'calibration': corpus(count=200), 'isotropic_shielding_ppm': [24.0, 27.5],
+               'atom_symbols': ['H', 'H']}
     body = client.post('/v1/calibration/shifts', json=payload, headers={'X-API-Key': 'a'*32}).json()
     assert body['status'] == 'predicted' and body['interval_half_width_ppm'] > 0
 
@@ -154,3 +159,47 @@ def test_identity_endpoint_rejects_unmatched_lengths(client):
 def test_duplicate_record_ids_rejected(client):
     data = corpus(count=40); data['records'][1]['id'] = data['records'][0]['id']
     assert client.post('/v1/calibration/fit', json=data, headers={'X-API-Key': 'a'*32}).status_code == 422
+
+
+def test_size_conditional_groups_cover_the_corpus_size_range():
+    """A molecule-level maximum grows with the count it is taken over."""
+    model = build(corpus(count=400), alpha=0.05)
+    groups = model['size_conditional_groups']
+    assert model['size_conditional'] and len(groups) >= 2
+    assert all(g['calibration_molecules'] >= 19 for g in groups)
+    assert all(g['usable'] and g['interval_ppm'] > 0 for g in groups)
+    assert [g['min_nuclei'] for g in groups] == sorted(g['min_nuclei'] for g in groups)
+    # Bins are contiguous and between them cover every size the corpus contains,
+    # so no size inside the observed range silently falls through to an abstention.
+    covered = {n for g in groups for n in range(g['min_nuclei'], g['max_nuclei'] + 1)}
+    assert covered == set(range(min(covered), max(covered) + 1))
+    assert covered.issuperset(set(model['calibration_score_sizes']))
+
+
+def test_a_size_the_corpus_never_saw_abstains_rather_than_borrowing_a_band():
+    rng = np.random.default_rng(2)
+    records = [molecule(rng, 'm%d' % i, nuclei=4) for i in range(120)]
+    model = build({'provenance': PROVENANCE, 'records': records}, alpha=0.05)
+    assert predict(model, [25.0] * 4)['status'] == 'predicted'
+    out = predict(model, [25.0] * 30)
+    assert out['status'] == 'abstained'
+    assert out['abstention']['reason'] == 'no_calibration_at_this_molecule_size'
+    assert assess_identity(model, [25.0] * 30, [5.0] * 30)['verdict'] == 'abstained'
+
+
+def test_size_conditioning_improves_coverage_for_the_largest_molecules():
+    """Regression guard for the defect this was added to fix."""
+    rng = np.random.default_rng(21)
+    pooled_hits, grouped_hits = [], []
+    for seed in range(60):
+        records = [molecule(rng, 'm%d' % i) for i in range(260)]
+        model = build({'provenance': PROVENANCE, 'records': records}, alpha=0.1, seed=seed)
+        probe = molecule(rng, 'probe', nuclei=8)
+        sigma = [n['shielding_ppm'] for n in probe['nuclei']]
+        observed = np.array([n['observed_shift_ppm'] for n in probe['nuclei']])
+        bounds = np.array(predict(model, sigma)['intervals_ppm'])
+        grouped_hits.append(bool(np.all((observed >= bounds[:, 0]) & (observed <= bounds[:, 1]))))
+        pooled = model['molecule_interval_ppm']
+        centre = model['scaling']['intercept'] + model['scaling']['slope'] * np.asarray(sigma)
+        pooled_hits.append(bool(np.all(np.abs(observed - centre) <= pooled)))
+    assert np.mean(grouped_hits) >= np.mean(pooled_hits)

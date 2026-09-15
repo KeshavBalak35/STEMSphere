@@ -20,6 +20,32 @@ import re
 from .normalize import normalize_solvent, record_id
 
 SPECTRUM_PROPERTY = re.compile(r"^Spectrum\s+([0-9]+[A-Za-z]+)\s*(\d*)$")
+INDEXED_VALUE = re.compile(r"(\d+):\s*([^:]*?)(?=\s+\d+:|$)")
+
+
+def parse_indexed(value):
+    """Split '0:CDCl3 1:Unreported' into {0: 'CDCl3', 1: 'Unreported'}.
+
+    NMRShiftDB records solvent, reference and field once per molecule, keyed by
+    the spectrum number, because one structure can carry several spectra measured
+    under different conditions. Reading the field as a single scalar would attach
+    one spectrum's solvent to all of them.
+    """
+    text = str(value).strip()
+    out = {}
+    for match in INDEXED_VALUE.finditer(text):
+        body = match.group(2).strip()
+        out[int(match.group(1))] = body or None
+    if not out and text:
+        # Older exports write a single unprefixed value that covers every spectrum.
+        out[None] = text
+    return out
+
+
+def _unreported(text):
+    if text is None or str(text).strip().lower() in ("unreported", "unknown", ""):
+        return None
+    return str(text).strip()
 
 
 def parse_peaks(value):
@@ -86,45 +112,96 @@ def iter_records(path, source="nmrshiftdb2"):
         except Exception:
             continue
         native = str(props.get("nmrshiftdb2 ID") or props.get("NMRSHIFTDB_ID") or mol.GetProp("_Name") or smiles)
-        solvent = normalize_solvent(props.get("Solvent"))
-        field = props.get("Field Strength [MHz]")
-        temperature = props.get("Temperature [K]")
+        solvents = parse_indexed(props.get("Solvent", ""))
+        standards = parse_indexed(props.get("NMRStandard", ""))
+        fields = parse_indexed(props.get("Field Strength [MHz]", ""))
+        temperatures = parse_indexed(props.get("Temperature [K]", ""))
 
         for name, value in props.items():
             match = SPECTRUM_PROPERTY.match(str(name))
             if not match:
                 continue
-            nucleus = match.group(1).upper().replace("H", "H")
+            nucleus = match.group(1).upper()
+            spectrum_number = int(match.group(2)) if match.group(2) else 0
             peaks = parse_peaks(value)
             if not peaks:
                 continue
             base = detect_index_base([p["atom_index"] for p in peaks], atom_count)
-            ambiguous = base is None
-            if not ambiguous:
-                for p in peaks:
-                    p["atom_index"] -= base
-            for p in peaks:
-                idx = p["atom_index"]
-                p["element"] = mol.GetAtomWithIdx(idx).GetSymbol() if not ambiguous and 0 <= idx < atom_count else None
-            unusable = None
-            if ambiguous:
-                unusable = "ambiguous_atom_index_base"
-            elif nucleus == "1H" and not has_explicit_h:
-                unusable = "implicit_hydrogens_cannot_be_indexed"
+            def for_spectrum(table):
+                return table.get(spectrum_number, table.get(None))
+            solvent = normalize_solvent(_unreported(for_spectrum(solvents)))
+            field = _unreported(for_spectrum(fields))
+            temperature = _unreported(for_spectrum(temperatures))
+            standard = _unreported(for_spectrum(standards))
             yield {
+                "_atom_symbols": [a.GetSymbol() for a in mol.GetAtoms()],
+                "_has_explicit_h": has_explicit_h,
+                "spectrum_number": spectrum_number,
                 "id": record_id(source, native, nucleus, solvent),
                 "source": source, "native_id": native, "smiles": smiles, "inchikey": inchikey,
                 "nucleus": nucleus, "solvent": solvent,
-                "reference_compound": None,
-                "field_mhz": float(field) if isinstance(field, (int, float)) else None,
-                "temperature_k": float(temperature) if isinstance(temperature, (int, float)) else None,
+                "reference_compound": standard,
+                "field_mhz": _as_float(field),
+                "temperature_k": _as_float(temperature),
                 "predicted": "predicted" in str(props.get("Spectrum Type", "")).lower(),
                 "atom_count": atom_count, "index_base_detected": base,
-                "unusable_reason": unusable,
-                "nuclei": [p for p in peaks if p.get("element")],
+                "unusable_reason": None,
+                "nuclei": peaks,
                 "licence": "CC BY-SA (NMRShiftDB2)",
             }
 
 
-def load(path, **kw):
-    return list(iter_records(path, **kw))
+def _as_float(value):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def resolve_index_bases(records, corpus_fallback=True):
+    """Settle the atom index convention, then assign elements and usability.
+
+    A single spectrum whose indices happen to fit both conventions is ambiguous
+    on its own evidence. Across a whole file the convention is not in doubt, so
+    the majority of the records that ARE unambiguous decides the rest. That is
+    inference from the corpus, not a guess, and every record records which of the
+    two it got through `index_base_source`.
+    """
+    decided = [r["index_base_detected"] for r in records if r["index_base_detected"] is not None]
+    majority = None
+    if corpus_fallback and decided:
+        majority = max(set(decided), key=decided.count)
+        if decided.count(majority) < 0.9 * len(decided):
+            majority = None       # the file is not internally consistent; do not extrapolate
+
+    for r in records:
+        symbols = r.pop("_atom_symbols", [])
+        explicit_h = r.pop("_has_explicit_h", True)
+        base = r["index_base_detected"]
+        r["index_base_source"] = "detected" if base is not None else (
+            "corpus_majority" if majority is not None else None)
+        if base is None:
+            base = majority
+        if base is None:
+            r["unusable_reason"] = "ambiguous_atom_index_base"
+            r["nuclei"] = []
+            continue
+        r["index_base_applied"] = base
+        kept = []
+        for p in r["nuclei"]:
+            idx = p["atom_index"] - base
+            if not 0 <= idx < len(symbols):
+                continue
+            p["atom_index"] = idx
+            p["element"] = symbols[idx]
+            kept.append(p)
+        r["nuclei"] = kept
+        if r["nucleus"] == "1H" and not explicit_h:
+            r["unusable_reason"] = "implicit_hydrogens_cannot_be_indexed"
+        elif not kept:
+            r["unusable_reason"] = "no_assignment_within_molecule"
+    return records
+
+
+def load(path, corpus_fallback=True, **kw):
+    return resolve_index_bases(list(iter_records(path, **kw)), corpus_fallback=corpus_fallback)

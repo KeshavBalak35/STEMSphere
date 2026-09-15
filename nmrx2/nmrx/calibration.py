@@ -35,6 +35,12 @@ import numpy as np
 # coverage guarantee rests on, so this is enforced rather than warned about.
 PROVENANCE_KEYS = ("method", "basis", "nucleus", "solvent", "reference_compound")
 
+# Some sources publish an already-referenced computed shift rather than a raw
+# shielding. The two are affine images of each other, so the scaling fit is
+# unchanged, but the expected slope sign flips and a sign check that ignores
+# this would flag every correct fit.
+COMPUTED_KINDS = ("shielding", "shift")
+
 
 def minimum_calibration_size(alpha):
     """Smallest calibration split size with a finite conformal quantile.
@@ -71,6 +77,48 @@ def conformal_pvalue(scores, new_score):
     """
     s = np.asarray(scores, dtype=float)
     return float((1 + int(np.sum(s >= new_score))) / (s.size + 1))
+
+
+def size_groups(counts, alpha):
+    """Adjacent bins over assigned-nucleus count, each large enough for the quantile.
+
+    A molecule-level maximum grows with the number of nuclei it is taken over, so
+    one pooled quantile over-covers small molecules and under-covers large ones.
+    Measured on real 13C data the marginal rate was exactly nominal while the
+    largest molecules sat several points below it. Splitting the calibration
+    scores by size and taking a quantile inside each bin restores coverage
+    conditional on size, at the cost of needing enough molecules in every bin.
+    """
+    need = minimum_calibration_size(alpha)
+    ordered = sorted(counts)
+    if len(ordered) < need:
+        return []
+    edges, start = [], 0
+    while start < len(ordered):
+        stop = start + need
+        if len(ordered) - stop < need:      # absorb a short tail into the last bin
+            stop = len(ordered)
+        low = ordered[start]
+        high = ordered[stop - 1] if stop < len(ordered) else ordered[-1]
+        while stop < len(ordered) and ordered[stop] == high:
+            stop += 1                        # never split one size across two bins
+            high = ordered[stop - 1] if stop <= len(ordered) else high
+        if edges and low <= edges[-1][1]:
+            low = edges[-1][1] + 1
+        if low > high:
+            edges[-1] = (edges[-1][0], high)
+        else:
+            edges.append((low, high))
+        start = stop
+    merged = []
+    for low, high in edges:
+        if merged and sum(1 for c in ordered if merged[-1][0] <= c <= merged[-1][1]) < need:
+            merged[-1] = (merged[-1][0], high)
+        else:
+            merged.append((low, high))
+    if len(merged) > 1 and sum(1 for c in ordered if merged[-1][0] <= c <= merged[-1][1]) < need:
+        merged[-2] = (merged[-2][0], merged[-1][1]); merged.pop()
+    return merged
 
 
 def _provenance_key(provenance):
@@ -111,13 +159,16 @@ def _split(records, train_fraction, seed):
     return ordered[:cut], ordered[cut:]
 
 
-def fit_scaling(shieldings, shifts):
-    """Ordinary least squares of observed shift on computed shielding.
+def fit_scaling(shieldings, shifts, computed_kind="shielding"):
+    """Ordinary least squares of observed shift on the computed predictor.
 
-    Reported in both the affine form delta = intercept + slope * sigma and the
-    literature form delta = (a - sigma) / b, which are the same line. Shielding
-    falls as shift rises, so a positive slope means the set is inconsistent.
+    Reported in both the affine form delta = intercept + slope * x and the
+    literature form delta = (a - x) / b, which are the same line. With a raw
+    shielding the slope must be negative, because shielding falls as shift rises.
+    With an already-referenced computed shift it must be positive and near one.
     """
+    if computed_kind not in COMPUTED_KINDS:
+        raise ValueError("computed_kind must be one of " + repr(COMPUTED_KINDS))
     x = np.asarray(shieldings, dtype=float)
     y = np.asarray(shifts, dtype=float)
     if x.size < 2 or x.shape != y.shape:
@@ -136,12 +187,17 @@ def fit_scaling(shieldings, shifts):
         "training_nuclei": int(x.size),
         "shielding_range_ppm": [float(x.min()), float(x.max())],
     }
-    if slope >= 0:
-        fit["warning"] = "Positive slope: shielding should fall as shift rises. Check sign conventions, reference, or set consistency."
+    fit["computed_kind"] = computed_kind
+    if computed_kind == "shielding" and slope >= 0:
+        fit["warning"] = ("Positive slope against a shielding: shielding should fall as shift rises. "
+                          "Check sign conventions, reference, or set consistency.")
+    if computed_kind == "shift" and slope <= 0:
+        fit["warning"] = ("Negative slope against a computed shift: a referenced prediction should track "
+                          "the measurement. Check whether the column is actually a shielding.")
     return fit
 
 
-def build(calibration_set, alpha=0.05, train_fraction=0.5, seed=42):
+def build(calibration_set, alpha=0.05, train_fraction=0.5, seed=42, computed_kind="shielding"):
     """Fit the scaling and conformal quantiles for one calibration set.
 
     Returns a model dictionary, or an abstention when the calibration split
@@ -162,7 +218,7 @@ def build(calibration_set, alpha=0.05, train_fraction=0.5, seed=42):
     train, calib = _split(records, train_fraction, seed)
     tx = np.concatenate([_pairs(r)[0] for r in train])
     ty = np.concatenate([_pairs(r)[1] for r in train])
-    fit = fit_scaling(tx, ty)
+    fit = fit_scaling(tx, ty, computed_kind=computed_kind)
 
     def predicted(record):
         x, y = _pairs(record)
@@ -175,11 +231,21 @@ def build(calibration_set, alpha=0.05, train_fraction=0.5, seed=42):
     molecule_q, molecule_k, molecule_ok = conformal_quantile(molecule_scores, alpha)
     nucleus_q, _, nucleus_ok = conformal_quantile(nucleus_scores, alpha)
 
+    sizes = np.array([len(r) for r in residuals])
+    groups = []
+    for low, high in size_groups(sizes.tolist(), alpha):
+        inside = molecule_scores[(sizes >= low) & (sizes <= high)]
+        q, k, ok = conformal_quantile(inside, alpha) if inside.size else (math.inf, 0, False)
+        groups.append({"min_nuclei": int(low), "max_nuclei": int(high),
+                       "calibration_molecules": int(inside.size),
+                       "interval_ppm": q if ok else None, "usable": bool(ok)})
+
     model = {
         "fingerprint": _fingerprint(key, records),
         "provenance": key,
         "alpha": alpha,
         "target_coverage": 1 - alpha,
+        "computed_kind": computed_kind,
         "scaling": fit,
         "split": {
             "train_molecules": len(train),
@@ -189,9 +255,12 @@ def build(calibration_set, alpha=0.05, train_fraction=0.5, seed=42):
             "seed": seed,
         },
         "molecule_interval_ppm": molecule_q if molecule_ok else None,
+        "size_conditional_groups": groups,
+        "size_conditional": bool(groups),
         "molecule_quantile_rank": molecule_k,
         "nucleus_interval_ppm": nucleus_q if nucleus_ok else None,
         "calibration_scores_ppm": molecule_scores.tolist(),
+        "calibration_score_sizes": sizes.tolist(),
         "usable": molecule_ok,
         "warnings": [
             "Coverage holds only for molecules exchangeable with the calibration split: same level of theory, solvent, reference and comparable chemical space.",
@@ -211,8 +280,24 @@ def build(calibration_set, alpha=0.05, train_fraction=0.5, seed=42):
     return model
 
 
+def _interval_for(model, count):
+    """Size-conditional half width when the model has groups, else the pooled one.
+
+    A molecule larger than every calibration molecule gets no interval: the corpus
+    contains no evidence about that size and widening the nearest bin would be a
+    guess dressed as a bound.
+    """
+    groups = model.get("size_conditional_groups") or []
+    if not groups:
+        return model["molecule_interval_ppm"], None
+    for g in groups:
+        if g["min_nuclei"] <= count <= g["max_nuclei"]:
+            return (g["interval_ppm"], g) if g["usable"] else (None, g)
+    return None, None
+
+
 def _domain_flags(model, shieldings):
-    low, high = model["scaling"]["shielding_range_ppm"]
+    low, high = model["scaling"]["shielding_range_ppm"]  # range of the computed predictor
     x = np.asarray(shieldings, dtype=float)
     outside = [int(i) for i in np.flatnonzero((x < low) | (x > high))]
     return outside
@@ -226,7 +311,15 @@ def predict(model, shieldings, atom_symbols=None):
     if x.ndim != 1 or x.size == 0 or not np.isfinite(x).all():
         raise ValueError("A finite one-dimensional shielding vector is required")
     shifts = model["scaling"]["intercept"] + model["scaling"]["slope"] * x
-    half = model["molecule_interval_ppm"]
+    half, group = _interval_for(model, int(x.size))
+    if half is None:
+        return {"status": "abstained", "provenance": model["provenance"],
+                "abstention": {"reason": "no_calibration_at_this_molecule_size",
+                               "assigned_nuclei": int(x.size),
+                               "calibrated_sizes": [[g["min_nuclei"], g["max_nuclei"]]
+                                                    for g in model.get("size_conditional_groups") or []],
+                               "detail": "The corpus contains no molecule of this size, so no interval "
+                                         "at this size has coverage."}}
     outside = _domain_flags(model, x)
     result = {
         "status": "predicted",
@@ -237,6 +330,7 @@ def predict(model, shieldings, atom_symbols=None):
         "interval_half_width_ppm": half,
         "intervals_ppm": [[float(s - half), float(s + half)] for s in shifts],
         "interval_scope": "simultaneous over all listed nuclei of this molecule",
+        "size_group": group,
         "nucleus_diagnostic_half_width_ppm": model["nucleus_interval_ppm"],
         "atom_symbols": atom_symbols,
         "extrapolated_nucleus_indices": outside,
@@ -270,7 +364,17 @@ def assess_identity(model, shieldings, observed_shifts, alpha=None):
         raise ValueError("Finite values required")
     residual = np.abs(y - (model["scaling"]["intercept"] + model["scaling"]["slope"] * x))
     score = float(residual.max())
-    p = conformal_pvalue(model["calibration_scores_ppm"], score)
+    half, group = _interval_for(model, int(x.size))
+    if half is None and model.get("size_conditional"):
+        return {"verdict": "abstained", "provenance": model["provenance"],
+                "abstention": {"reason": "no_calibration_at_this_molecule_size",
+                               "assigned_nuclei": int(x.size)}}
+    pool = model["calibration_scores_ppm"]
+    if group is not None:
+        sizes = model.get("calibration_score_sizes") or []
+        if len(sizes) == len(pool):
+            pool = [v for v, n in zip(pool, sizes) if group["min_nuclei"] <= n <= group["max_nuclei"]] or pool
+    p = conformal_pvalue(pool, score)
     outside = _domain_flags(model, x)
     verdict = "inconsistent" if p <= a else "not_contradicted"
     out = {
@@ -281,6 +385,7 @@ def assess_identity(model, shieldings, observed_shifts, alpha=None):
         "worst_nucleus_index": int(np.argmax(residual)),
         "residuals_ppm": residual.tolist(),
         "calibration_molecules": model["split"]["calibration_molecules"],
+        "size_group": group,
         "fingerprint": model["fingerprint"],
         "provenance": model["provenance"],
         "interpretation": "A rejection is a calibrated statement at the stated level. Absence of rejection is not confirmation of identity, purity or novelty.",

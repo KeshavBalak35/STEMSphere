@@ -75,6 +75,7 @@ class CalibrationProvenance(Strict):
     reference_compound: str = Field(min_length=1, max_length=100)
     temperature_k: float | None = Field(default=None, gt=0, le=1000)
     source: str | None = Field(default=None, max_length=2000)
+    computed_kind: Literal["shielding", "shift"] = "shielding"
 
 class CalibrationSet(Strict):
     provenance: CalibrationProvenance

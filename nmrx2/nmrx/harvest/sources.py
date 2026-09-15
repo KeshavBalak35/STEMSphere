@@ -30,6 +30,22 @@ SOURCES = {
                 "before this becomes the foundation.",
         "verified": False,
     },
+    "cascade": {
+        "name": "CASCADE (Paton lab)",
+        "content": "About 5,100 molecules with BOTH experimental 13C shifts and DFT values at one "
+                   "fixed level, plus 3D structures. The only public source found carrying both halves.",
+        "modality": ["nmr"],
+        "bulk": "https://raw.githubusercontent.com/patonlab/cascade/master",
+        "format": "csv_sdf",
+        "licence": "MIT repository; experimental shifts sampled from NMRShiftDB (CC BY-SA)",
+        "commercial_use": "share_alike",
+        "bulk_download_allowed": True,
+        "approximate_records": 5139,
+        "note": "The repository licence does not settle the underlying data's terms. Exp5K is the "
+                "DFT-agreeing subset of NMR8K, so it is filtered by agreement and yields optimistic "
+                "intervals. Do not join NMR8K to DFT8K by atom index; the numbering disagrees.",
+        "verified": False,
+    },
     "nmrxiv": {
         "name": "nmrXiv",
         "content": "Open NMR datasets including raw FID and processed spectra",

@@ -74,7 +74,8 @@ def guide(req:Guide,tenant=Depends(owner)):
 def _model(req):
     try:
         return calibration.build(req.model_dump(exclude={'alpha','train_fraction','seed'}),
-                                 alpha=req.alpha, train_fraction=req.train_fraction, seed=req.seed)
+                                 alpha=req.alpha, train_fraction=req.train_fraction, seed=req.seed,
+                                 computed_kind=req.provenance.computed_kind)
     except ValueError as exc: raise HTTPException(422,str(exc))
 
 @app.post('/v1/calibration/fit')
