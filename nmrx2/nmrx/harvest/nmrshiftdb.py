@@ -112,6 +112,13 @@ def iter_records(path, source="nmrshiftdb2"):
         except Exception:
             continue
         native = str(props.get("nmrshiftdb2 ID") or props.get("NMRSHIFTDB_ID") or mol.GetProp("_Name") or smiles)
+        # NMRShiftDB carries predicted spectra alongside measured ones. They are not
+        # flagged by "Spectrum Type"; they are flagged by the presence of a level of
+        # theory or a prediction program for that spectrum number. Missing this is how
+        # a calculated shift silently enters an experimental calibration set.
+        models = parse_indexed(props.get("NMRModel", ""))
+        basis_sets = parse_indexed(props.get("NMRBasisSet", ""))
+        programs = parse_indexed(props.get("Program", ""))
         solvents = parse_indexed(props.get("Solvent", ""))
         standards = parse_indexed(props.get("NMRStandard", ""))
         fields = parse_indexed(props.get("Field Strength [MHz]", ""))
@@ -133,6 +140,10 @@ def iter_records(path, source="nmrshiftdb2"):
             field = _unreported(for_spectrum(fields))
             temperature = _unreported(for_spectrum(temperatures))
             standard = _unreported(for_spectrum(standards))
+            model = _unreported(for_spectrum(models))
+            basis = _unreported(for_spectrum(basis_sets))
+            program = _unreported(for_spectrum(programs))
+            calculated = bool(model or basis or program)
             yield {
                 "_atom_symbols": [a.GetSymbol() for a in mol.GetAtoms()],
                 "_has_explicit_h": has_explicit_h,
@@ -143,7 +154,9 @@ def iter_records(path, source="nmrshiftdb2"):
                 "reference_compound": standard,
                 "field_mhz": _as_float(field),
                 "temperature_k": _as_float(temperature),
-                "predicted": "predicted" in str(props.get("Spectrum Type", "")).lower(),
+                "predicted": calculated or "predicted" in str(props.get("Spectrum Type", "")).lower(),
+                "record_status": "calculated" if calculated else "measured",
+                "computed_model": model, "computed_basis": basis, "computed_program": program,
                 "atom_count": atom_count, "index_base_detected": base,
                 "unusable_reason": None,
                 "nuclei": peaks,
