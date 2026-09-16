@@ -8,7 +8,13 @@ ingesting it into anything you sell.
 
 `commercial_use` values:
   allowed      permissive licence, commercial use with attribution
-  share_alike  commercial use permitted, but derived databases may inherit the licence
+  share_alike  commercial use is permitted. The obligation attaches to the DATABASE:
+               if you redistribute the source database, or a derived database built
+               from it, that redistribution may have to carry the same licence. It is
+               not software copyleft and does not reach your application code, your
+               calculations or your interface. Operating a paid service on top of it
+               is a different question from publishing the data, and the two are
+               frequently confused. Get the redistribution question reviewed.
   restricted   free for academic use, separate licence required to sell
   prohibited   terms forbid bulk retrieval or redistribution
 """
@@ -25,9 +31,10 @@ SOURCES = {
         "bulk_download_allowed": True,
         "approximate_records": 44000,
         "note": "The anchor corpus: the only large open collection with per-atom assignments. "
-                "Share-alike is the business question. A derived corpus may inherit the licence, "
-                "which matters if the calibrated corpus is meant to be the moat. Get an opinion "
-                "before this becomes the foundation.",
+                "Share-alike governs redistribution of the database, not the operation of a "
+                "product built on it. The question to review is whether your calibration corpus "
+                "counts as a derived database you would be redistributing, and what you would "
+                "have to publish if it does. Your own code and calculations are unaffected.",
         "verified": False,
     },
     "cascade": {

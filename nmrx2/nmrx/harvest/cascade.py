@@ -11,7 +11,9 @@ Paton, R. S. Chem. Sci. 2021, DOI 10.1039/D1SC03343C.
 Licence. The repository is MIT. The experimental shifts inside it are sampled
 from NMRShiftDB, which is share-alike, so the repository licence does not settle
 the question of the underlying data. Treat the corpus as carrying NMRShiftDB's
-terms until someone with authority says otherwise.
+terms until someone with authority says otherwise. Share-alike constrains how a
+derived database may be redistributed; it does not make the surrounding software
+open source and does not by itself prevent commercial operation.
 
 Two properties of this data decide how it may be used.
 

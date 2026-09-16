@@ -22,10 +22,21 @@ matters for a commercial product:
 Two consequences worth deciding early rather than late.
 
 **The largest open collection is share-alike.** NMRShiftDB2 is the only large
-open source with per-atom assignments, and it carries a share-alike licence. A
-corpus derived from it may inherit that licence. If the calibrated corpus is
-meant to be the defensible asset, get an opinion before it becomes the
-foundation rather than after.
+open source with per-atom assignments, and it carries a share-alike licence.
+
+Be precise about what that does and does not mean, because it is widely
+overstated. Share-alike here is a database licence, not software copyleft. It
+does not require NMRx to be free or open source, it does not reach your
+application code, your calculations, your models or your interface, and it does
+not prevent you charging for a service. What it governs is redistribution of the
+database: if you publish the source database, or a derived database built from
+it, that published copy may have to carry the same licence and attribution.
+
+So the question to get reviewed is narrow and answerable: does your calibration
+corpus count as a derived database, and are you redistributing it or only using
+it internally to serve predictions. Those two cases have different answers. Ask
+a lawyer that specific question rather than a general one about whether you can
+sell the product.
 
 **The largest matching collections are closed.** SDBS and the NIST IR set are
 exactly what a broad harvest would want and both restrict bulk retrieval. This
