@@ -53,6 +53,86 @@ SOURCES = {
                 "intervals. Do not join NMR8K to DFT8K by atom index; the numbering disagrees.",
         "verified": False,
     },
+    "cheshire": {
+        "name": "CHESHIRE NMR prediction benchmark sets",
+        "content": "Curated probe and test sets pairing experimental 13C and 1H shifts with stated "
+                   "computational protocols and scaling factors",
+        "modality": ["nmr"],
+        "bulk": "http://cheshirenmr.info/MoleculeSets.htm",
+        "format": "html_tables",
+        "licence": "Academic reference resource; terms not stated for redistribution",
+        "commercial_use": "restricted",
+        "bulk_download_allowed": False,
+        "approximate_records": 100,
+        "note": "The highest-quality match for the calibration layer of anything found: it exists "
+                "specifically to benchmark computed shifts against experiment, and states the level "
+                "of theory. Small, so it is a validation set rather than a training corpus. A subset "
+                "ships inside the CASCADE repository. Confirm redistribution terms before shipping it.",
+        "verified": False,
+    },
+    "gissmo": {
+        "name": "GISSMO (BMRB)",
+        "content": "1H spin systems with simulated and experimental spectra, field, solvent and pH",
+        "modality": ["nmr"],
+        "bulk": "https://gissmo.bmrb.io/",
+        "format": "json_xml",
+        "licence": "Public, free use (same terms as BMRB)",
+        "commercial_use": "allowed",
+        "bulk_download_allowed": True,
+        "approximate_records": 1000,
+        "note": "Conditions metadata is unusually complete. 1H only, and 1H calibration is harder "
+                "than 13C because the shift range is narrow and solvent effects are proportionally "
+                "larger. Useful second target, not the first.",
+        "verified": False,
+    },
+    "chemotion": {
+        "name": "Chemotion Repository",
+        "content": "Open research-data repository fed by electronic lab notebooks; raw and processed "
+                   "NMR with acquisition metadata",
+        "modality": ["nmr", "ir", "ms"],
+        "bulk": "https://www.chemotion-repository.net/",
+        "format": "json_api",
+        "licence": "CC BY per dataset in most cases",
+        "commercial_use": "allowed",
+        "bulk_download_allowed": True,
+        "approximate_records": None,
+        "note": "Because it is fed from lab notebooks, solvent and instrument conditions are recorded "
+                "as a matter of course rather than as an afterthought. That is exactly the field this "
+                "project is short of. Per-atom assignment depends on the depositor. Worth a survey.",
+        "verified": False,
+    },
+    "nmredata": {
+        "name": "NMReDATA format and record collections",
+        "content": "An SDF extension that carries assigned shifts, couplings, solvent and temperature "
+                   "inside the structure file",
+        "modality": ["nmr"],
+        "bulk": "https://nmredata.org/",
+        "format": "sdf_nmredata",
+        "licence": "The format is open; individual record sets vary",
+        "commercial_use": "allowed",
+        "bulk_download_allowed": True,
+        "approximate_records": None,
+        "note": "Strictly a file format rather than a database, and that is why it matters here: it is "
+                "the one format that carries assignment AND conditions in a single file. Supporting it "
+                "means data obtained by any route, a collaborator, a licence purchase or your own "
+                "spectrometer, flows in without a new connector.",
+        "verified": False,
+    },
+    "zenodo": {
+        "name": "Zenodo and general research repositories",
+        "content": "Individual deposited NMR datasets accompanying publications",
+        "modality": ["nmr", "ir"],
+        "bulk": "https://zenodo.org/",
+        "format": "mixed",
+        "licence": "Per deposit, commonly CC BY or CC0",
+        "commercial_use": "allowed",
+        "bulk_download_allowed": True,
+        "approximate_records": None,
+        "note": "Long tail. Quality and format vary per deposit and there is no common schema, so this "
+                "is a manual, curated route rather than a connector. Each deposit needs its licence "
+                "read individually.",
+        "verified": False,
+    },
     "nmrxiv": {
         "name": "nmrXiv",
         "content": "Open NMR datasets including raw FID and processed spectra",
@@ -214,6 +294,99 @@ SOURCES = {
         "verified": False,
     },
 }
+
+# ---------------------------------------------------------------------------
+# Calibration fitness
+#
+# The calibration layer needs three things from a source, and a source missing any
+# one of them cannot feed it however large it is:
+#
+#   measured        the values are measurements, not predictions. Calibrating a
+#                   prediction against a prediction measures nothing.
+#   assignments     each shift is tied to a specific atom. A peak list with no
+#                   assignment cannot be paired with a computed shielding.
+#   conditions      solvent and reference are recorded. Shifts are not comparable
+#                   across solvents, and an unrecorded reference is an unknown
+#                   offset applied to every value.
+#
+# Measured on the NMRShiftDB-derived bulk file: 6,032 molecules ingested, 601 with a
+# recorded solvent, 0 with a recorded reference compound. Volume was never the
+# constraint. This scoring exists so that ranking is done on the constraint.
+# ---------------------------------------------------------------------------
+
+CALIBRATION_FITNESS = {
+    "nmrshiftdb2":   {"measured": "yes", "assignments": "yes", "conditions": "partial",
+                      "detail": "Solvent recorded for about 10 percent of records, reference for none "
+                                "in the sample examined. Assignments are per-atom and good."},
+    "cascade":       {"measured": "yes", "assignments": "yes", "conditions": "partial",
+                      "detail": "Carries BOTH measured shifts and DFT values at one fixed level, which "
+                                "no other public source does. Filtered by agreement with the "
+                                "calculation, so intervals fitted on it are optimistic."},
+    "cheshire":      {"measured": "yes", "assignments": "yes", "conditions": "yes",
+                      "detail": "Purpose-built for exactly this: benchmarking computed NMR against "
+                                "experiment, with the computational protocol stated. Small, curated, "
+                                "and the closest thing to a gold standard for scaling factors."},
+    "bmrb":          {"measured": "yes", "assignments": "yes", "conditions": "yes",
+                      "detail": "The metabolomics subset records solvent, pH, temperature and reference "
+                                "properly. Small-molecule coverage is limited but the metadata is the "
+                                "best of any open source."},
+    "gissmo":        {"measured": "yes", "assignments": "yes", "conditions": "yes",
+                      "detail": "1H spin systems with explicit field, solvent and pH. Narrow nucleus "
+                                "coverage, excellent conditions."},
+    "nmrxiv":        {"measured": "yes", "assignments": "partial", "conditions": "yes",
+                      "detail": "Modern submissions carry full acquisition metadata. Per-atom "
+                                "assignment depends on whether the depositor supplied NMReDATA."},
+    "chemotion":     {"measured": "yes", "assignments": "partial", "conditions": "yes",
+                      "detail": "Open repository fed by electronic lab notebooks, so conditions are "
+                                "recorded as a matter of course. Assignment varies per dataset."},
+    "hmdb":          {"measured": "mixed", "assignments": "partial", "conditions": "yes",
+                      "detail": "Mixes experimental and predicted spectra in one place. The predicted "
+                                "ones must be excluded explicitly or they will contaminate a corpus."},
+    "riken_spectraldb": {"measured": "yes", "assignments": "partial", "conditions": "partial",
+                      "detail": "No bulk access, so unusable at scale regardless of quality."},
+    "sdbs":          {"measured": "yes", "assignments": "yes", "conditions": "yes",
+                      "detail": "Scientifically ideal and legally closed. Bulk collection prohibited."},
+    "nist_webbook":  {"measured": "yes", "assignments": "no", "conditions": "yes",
+                      "detail": "Gas-phase IR is the best possible match for a gas-phase harmonic "
+                                "calculation, which makes the access terms genuinely costly here."},
+}
+
+FITNESS_SCORE = {"yes": 2, "partial": 1, "mixed": 1, "no": 0}
+
+
+def calibration_rank():
+    """Rank sources by whether they can actually feed the calibration layer."""
+    rows = []
+    for key, fitness in CALIBRATION_FITNESS.items():
+        source = SOURCES.get(key, {})
+        score = sum(FITNESS_SCORE.get(fitness[f], 0) for f in ("measured", "assignments", "conditions"))
+        reachable = bool(source.get("bulk_download_allowed"))
+        rows.append({
+            "source": key, "score": score, "measured": fitness["measured"],
+            "assignments": fitness["assignments"], "conditions": fitness["conditions"],
+            "bulk_access": reachable, "commercial_use": source.get("commercial_use", "unknown"),
+            "records": source.get("approximate_records"),
+            "usable_now": reachable and fitness["measured"] in ("yes", "mixed")
+                          and fitness["assignments"] in ("yes", "partial"),
+            "detail": fitness["detail"],
+        })
+    rows.sort(key=lambda r: (-r["score"], not r["usable_now"], r["source"]))
+    return rows
+
+
+def calibration_report():
+    lines = ["Source          Score  Measured  Assign    Conditions  Bulk   Commercial     Usable",
+             "-" * 92]
+    for r in calibration_rank():
+        lines.append("%-15s %d/6    %-9s %-9s %-11s %-6s %-14s %s" % (
+            r["source"], r["score"], r["measured"], r["assignments"], r["conditions"],
+            "yes" if r["bulk_access"] else "NO", r["commercial_use"],
+            "yes" if r["usable_now"] else "no"))
+    lines += ["", "Score is measured + assignments + conditions, 2 points each.",
+              "'Usable' means bulk-accessible AND measured AND assigned. Conditions can be",
+              "repaired by filtering; a missing assignment or a prediction cannot."]
+    return "\n".join(lines)
+
 
 HARVESTABLE = [k for k, v in SOURCES.items() if v["bulk_download_allowed"]]
 COMMERCIALLY_CLEAR = [k for k, v in SOURCES.items()
