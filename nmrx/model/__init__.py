@@ -2,6 +2,7 @@
 
 from .calibration import Eligibility, Rejection, evaluate, rule_catalogue
 from .dedup import ExperimentCluster, cluster_records, dedup_summary
+from .dossier import MoleculeDossier, Section
 from .provenance import (
     UNKNOWN,
     EvidenceClass,
@@ -28,4 +29,5 @@ __all__ = [
     "ExperimentalConditions", "MoleculeIdentity", "NMRRecord", "ShiftAssignment", "SourceRef",
     "Eligibility", "Rejection", "evaluate", "rule_catalogue",
     "ExperimentCluster", "cluster_records", "dedup_summary",
+    "MoleculeDossier", "Section",
 ]
