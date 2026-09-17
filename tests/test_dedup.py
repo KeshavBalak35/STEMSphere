@@ -106,3 +106,32 @@ class TestSummary(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestUnknownConditionsInTheKey(unittest.TestCase):
+    """Documented decision: UNKNOWN participates in the experiment key as itself.
+
+    Two records that both lack a solvent therefore land in the same cluster if everything
+    else matches. That is deliberate and conservative: we cannot tell whether they are the
+    same acquisition, and treating them as one experiment *understates* independence rather
+    than overstating it. Splitting them would let a single experiment served twice, with the
+    solvent dropped by both exports, read as two corroborating results.
+    """
+
+    def _sparse(self, source_id):
+        from nmrx.model.records import ExperimentalConditions
+        r = rec(source_id)
+        r.conditions = ExperimentalConditions()   # everything UNKNOWN
+        return r
+
+    def test_two_records_missing_the_same_conditions_cluster_together(self):
+        clusters = cluster_records([self._sparse("massbank"), self._sparse("mona")])
+        self.assertEqual(len(clusters), 1)
+
+    def test_a_known_solvent_never_matches_an_unknown_one(self):
+        clusters = cluster_records([rec("massbank"), self._sparse("mona")])
+        self.assertEqual(len(clusters), 2)
+
+    def test_the_unknown_key_component_is_stable(self):
+        a, b = self._sparse("massbank"), self._sparse("mona")
+        self.assertEqual(experiment_key(a), experiment_key(b))

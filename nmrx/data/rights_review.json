@@ -1,0 +1,156 @@
+{
+  "_note": "Independent rights sweep over all 50 sources, derived from the research material. It records what provider documentation SAYS. It does not authorize reuse.",
+  "reviewed_on": "2026-09-17",
+  "buckets": {
+    "usable_when_unblocked": [
+      "alphafold",
+      "ani",
+      "bindingdb",
+      "chebi",
+      "chembl",
+      "cod",
+      "datacite",
+      "drugcentral",
+      "gnps",
+      "mona",
+      "nomad",
+      "ord",
+      "pdbe",
+      "pubchemqc",
+      "qm9",
+      "rcsb",
+      "re3data",
+      "reactome",
+      "uniprot"
+    ],
+    "rights_unverified": [
+      "bmrb",
+      "chemotion",
+      "crossref",
+      "dailymed",
+      "europepmc",
+      "fairsharing",
+      "iochembd",
+      "massbank",
+      "nfdi4chem",
+      "nist",
+      "nmrbank",
+      "nmrshiftdb2",
+      "nmrxiv",
+      "openspecy",
+      "pmc_oa",
+      "pubchem",
+      "qcarchive",
+      "rruff",
+      "unichem",
+      "zenodo"
+    ],
+    "non_commercial_only": [
+      "cas_common",
+      "sabiork",
+      "spectrabase"
+    ],
+    "licence_or_account_required": [
+      "comptox",
+      "csd",
+      "drugbank",
+      "gtopdb",
+      "materialsproject",
+      "openfda",
+      "ramanbase"
+    ],
+    "harvesting_prohibited": [
+      "sdbs"
+    ]
+  },
+  "bucket_detail": {
+    "usable_when_unblocked": [
+      "#3 ChEBI \u2014 map Rights: \"CC BY 4.0.\" Unqualified; commercial use permitted with attribution. (Registry `chebi`, hosts www.ebi.ac.uk, ftp.ebi.ac.uk.)",
+      "#13 MoNA (MassBank of North America) \u2014 map Rights: \"Default content license CC BY 4.0 with possible separately arranged exceptions. Preserve constituent-library provenance.\" Usable as a default, but the exception clause means the default is not a guarantee per constituent library.",
+      "#14 GNPS / GNPS2 spectral libraries \u2014 map Rights: \"Direct reference contributions default to CC0; imported libraries retain their own terms.\" Only the direct-contribution subset is CC0; imported libraries must be filtered out or checked individually.",
+      "#15 Reactome \u2014 map Rights: \"Database data and derived data files are CC0; artwork is CC BY 4.0, and software has separate terms.\" Data path is CC0; do not pull artwork or code under that assumption.",
+      "#16 ChEMBL \u2014 map Rights: \"Database CC BY-SA 3.0; keep source attribution and assess share-alike obligations for redistributed data.\" Open and commercial-capable, but share-alike \u2014 see share_alike_contagion.",
+      "#17 BindingDB \u2014 map Rights: \"BindingDB-curated records CC BY 4.0; ChEMBL-derived records retain CC BY-SA 3.0 according to the maintainers' database paper.\" Two licences inside one source; access note also warns \"bulk registration may apply.\"",
+      "#18 RCSB Protein Data Bank \u2014 map Rights: \"PDB archive and RCSB programmatic API data CC0. Website articles have separate rights.\"",
+      "#19 PDBe / PDBe-KB \u2014 map Rights: \"PDB archive CC0; preserve provenance of additional annotations and consult PDBe's access statement.\" CC0 covers the shared archive, not necessarily PDBe-KB's added annotations.",
+      "#20 UniProt \u2014 map Rights: \"Copyrightable database parts CC BY 4.0.\"",
+      "#21 AlphaFold Protein Structure Database \u2014 map Rights: \"Predictions CC BY 4.0; separate AlphaFold software/services can have different terms.\"",
+      "#22 DrugCentral \u2014 map Rights: \"Official license page links CC BY-SA 4.0.\" Open but share-alike \u2014 see share_alike_contagion. Map also flags files dated 2023 and an unusual AWS API hostname needing explicit verification.",
+      "#27 QM9 / GDB-9 \u2014 map Rights: \"Author data deposit CC0.\" Map adds: \"Verify the record title and contents because the deposit URL retains an older title.\"",
+      "#28 PubChemQC \u2014 map Rights: \"Newer PM6 and B3LYP//PM6 datasets are CC BY 4.0 according to the authors; verify each chosen release.\" CC BY 4.0 is stated only for those named releases and is release-scoped, not site-wide.",
+      "#29 ANI-1x / ANI-1ccx \u2014 map Rights: \"Deposit CC0.\" (Author figshare deposit; GitHub repo holds support scripts only.)",
+      "#31 Open Reaction Database (ORD) \u2014 map Rights: \"Data CC BY-SA as stated by project overview; verify exact version in selected release. Software is separately licensed.\" Open and commercial-capable, but share-alike with no version pinned by the map.",
+      "#32 Crystallography Open Database (COD) \u2014 map Rights: \"COD data and database CC0.\"",
+      "#34 NOMAD \u2014 map Rights: \"Published central-service data CC BY 4.0 according to publishing documentation; verify selected entry's release/publication status.\" CC BY 4.0 attaches to published entries only.",
+      "#37 re3data \u2014 map Rights: \"Registry records are CC0; this does not license the research data held by listed repositories.\" The CC0 covers the registry records NMRx would actually ingest.",
+      "#38 DataCite \u2014 map Rights: \"Metadata is CC0; linked datasets and papers are explicitly outside that blanket waiver.\" The CC0 covers the DOI metadata NMRx would actually ingest."
+    ],
+    "rights_unverified": [
+      "#1 PubChem \u2014 map Rights: \"Contributor-specific rights; PubChem explicitly warns some datasets cannot be bulk downloaded under their contributor agreements. Preserve contributing source licenses.\" No blanket licence is stated anywhere in the map for PubChem content.",
+      "#2 UniChem \u2014 map Rights: \"Check UniChem data terms and the licenses of destinations; linked sources do not inherit one blanket license.\" No licence named.",
+      "#4 nmrshiftdb2 \u2014 map Rights: \"Provider calls the database open content and links a specific data license. The license text did not render in this research, so its exact current version is unverified; do not carry forward the earlier blanket share-alike claim without checking.\" Map correction #4 repeats this: \"Exact nmrshiftdb2 license text was not retrievable in this review, so the earlier blanket license statement should be treated as unverified.\" This is a first-connection NMR priority with unverified rights.",
+      "#5 BMRB metabolomics \u2014 map Rights: \"Metabolomics policy says free access but does not itself specify a standard reuse license. Confirm scope of the applicable archive/data terms before assigning CC0 to this subset.\"",
+      "#6 nmrXiv \u2014 map Rights: \"Inspect each project/sample license; parent licenses propagate to spectra. Do not infer every record's rights from the website footer.\" No default licence established.",
+      "#7 NMRBank / NMRExtractor \u2014 map Rights: \"Repository advertises MIT for code, but dataset-specific terms and source-publication rights were not independently established here.\" Literature-extracted records also carry upstream publisher rights questions.",
+      "#8 Chemotion Repository \u2014 map Rights: \"Per-publication licenses, including CC BY-SA 4.0, CC BY, CC0 and public-domain markings.\" No repository-wide default; each publication must be read, and some are share-alike. Access note adds: \"FAQ mentions registration for some dataset downloads.\"",
+      "#9 RRUFF \u2014 map Rights: \"Free viewing/downloading exists, but a formal reuse license for the intended commercial use was not established in this review.\"",
+      "#11 OpenSpecy reference libraries \u2014 map Rights: \"Library-specific rights need review; do not copy the OpenSpecy software license onto all contributed spectra.\" Map also records that OSF page retrieval was blocked during the review.",
+      "#12 MassBank \u2014 map Rights: \"Use each record's mandatory LICENSE field. Allowed terms vary, including CC0, CC BY, share-alike and non-commercial variants.\" No repository-wide default; the per-record LICENSE field is authoritative and can be NC.",
+      "#24 DailyMed \u2014 map Rights: \"NLM distinguishes government works from contributed content. Do not assume all company-submitted label content has a blanket CC0 license.\"",
+      "#26 QCArchive / MolSSI \u2014 map Rights: \"No universal data license was verified for all hosted datasets. Check selected dataset terms, not only the server-software license.\"",
+      "#30 ioChem-BD \u2014 map Rights: \"Per-record/file rights must be checked. AGPL on API documentation describes software, not necessarily the hosted data.\"",
+      "#35 NFDI4Chem Search Service \u2014 map Rights: \"Underlying datasets retain their own licenses; indexed metadata is not permission to copy every linked file.\" No licence stated for the index itself; map also notes \"no general public API was established in this review.\"",
+      "#36 FAIRsharing \u2014 map Rights: \"Registry descriptions and linked datasets have separate rights; inspect each provider.\" Access note: \"API access and registry reuse terms need a separate check if automated ingestion is planned.\"",
+      "#39 Crossref \u2014 map Rights: \"Almost all metadata may be reused; abstracts can retain publisher/author copyright. Linked full texts and supplements require their own rights checks.\" No licence instrument named; \"almost all\" is a hedge, so the abstract field specifically is not cleared.",
+      "#40 Europe PMC \u2014 map Rights: \"Publication-specific licenses; open access to metadata does not authorize unrestricted republication of all full text.\"",
+      "#41 PubMed Central Open Access Subset \u2014 map Rights: \"Licenses vary by article; not all articles in PMC are available for text mining/reuse.\" Access is additionally channel-restricted: \"Only use the official authorized retrieval channels: PMC Cloud, OAI-PMH, E-Utilities or BioC\" and \"Do not crawl every article webpage.\" Automated collection is permitted but only through the authorized channels, so this is a rights problem before it is a harvesting problem.",
+      "#42 Zenodo \u2014 map Rights: \"Metadata CC0; each deposited dataset/file has its own declared license and access status.\" The metadata is CC0 but the deposited chemistry files NMRx actually wants are per-deposit licensed and unestablished.",
+      "#45 NIST Chemistry WebBook \u2014 map Rights: \"Standard Reference Data compilation copyright applies; confirm terms for the exact collection and intended reuse. The review does not establish that every commercial use requires the same paid license.\" The map deliberately declines to say a paid licence is or is not required, so it cannot be moved to licence_or_account_required. Map priority label: \"Collection-specific rights review.\""
+    ],
+    "non_commercial_only": [
+      "#44 CAS Common Chemistry \u2014 map Rights: \"Public records state CC BY-NC 4.0. Do not treat them as freely licensed for a commercial NMRx product.\" The clearest single NC term in the catalog.",
+      "#43 SABIO-RK \u2014 map Rights: \"Official terms grant non-commercial internal research/academic use; commercial use requires a negotiated license.\" NC for the free path; commercial route is a negotiated licence (map priority: \"Commercial permission first\").",
+      "#47 Wiley SpectraBase \u2014 map Rights: \"Annotation export is offered with non-commercial/no-derivatives restrictions; EULA restricts redistribution/service provision and ML uses. Exact licensed rights must be confirmed.\" The only freely obtainable data product is NC/ND; the commercial route is negotiation (\"Commercial numerical-library integration should be negotiated with the provider\"), and the map separately warns \"Do not turn free lookup into a scraping connector.\" Bucketed NC because the NC/ND term is the documented one governing what can be obtained without a deal."
+    ],
+    "licence_or_account_required": [
+      "#10 Raman Base \u2014 Access: \"Public API advertised, but API landing redirected to login during review. Confirm account, credentials and endpoint documentation before connecting.\" Map priority: \"Specialist extension with credentials.\" Rights are mixed: \"Database organization CC BY 4.0; record licenses can differ, including CC0 and non-commercial share-alike terms. Specific record terms override defaults\" \u2014 so some records are also NC.",
+      "#23 openFDA \u2014 Access: \"Plan regular API access with a free key; official pages differ on anonymous limits, so verify current behavior.\" Rights are open by default (\"Default CC0 unless otherwise stated, with possible third-party exceptions\") \u2014 this is a key gate, not a rights gate.",
+      "#25 EPA CompTox / CTX APIs \u2014 Access: \"Free individual API key plus public download options.\" Map priority: \"Next connections with API key.\" Rights are the most permissive in the catalog: \"EPA states these data are free of copyright restrictions for commercial/noncommercial use\" \u2014 again a key gate, not a rights gate, and public downloads exist beside the keyed API.",
+      "#33 Materials Project \u2014 Access: \"MPRester/API with an account API key.\" Map priority: \"Specialist extension with API key.\" Rights: \"Core data CC BY 4.0; contributed data require their own rights review.\"",
+      "#48 IUPHAR/BPS Guide to PHARMACOLOGY \u2014 Rights: \"Database ODbL and contents CC BY-SA 4.0; commercial access fees are described by the provider. Review current access agreement.\" Access: \"Official 2026 notice introduces registration and API keys, with the API transition scheduled around September 15-17, 2026. Verify present access.\" That transition window brackets today's date, so anonymous access documentation is presumed stale. Also share-alike \u2014 see share_alike_contagion.",
+      "#49 DrugBank \u2014 Rights: \"Commercial use requires commercial terms. Academic offerings have restrictions; the current latest-release page reports academic downloads temporarily paused.\" Access: \"Licensed API/data products. Actual API hosts and credentials should come from the user's applicable agreement.\"",
+      "#50 CCDC / Cambridge Structural Database \u2014 Rights: \"Full CSD use and redistribution depend on an applicable agreement; free viewing does not grant a blanket database-mirroring right.\" Access: \"Free deposited-structure lookup is separate from full CSD Portfolio/API access under a license.\""
+    ],
+    "harvesting_prohibited": [
+      "#46 AIST SDBS \u2014 Access: \"Manual lookup. The current disclaimer prohibits automated robot collection and large downloads.\" Rights: \"Commercial/profit use requires contacting the operator according to the FAQ; permission has not been obtained.\" Caution: \"Exclude from automatic harvesting.\" The paste-prompt at map line 952 also names SDBS specifically: \"Keep SDBS outside automated harvesting.\" This is the only source in the catalog where the provider forbids automated collection outright."
+    ]
+  },
+  "share_alike_contagion": [
+    "#16 ChEMBL \u2014 exact string in map: \"Database CC BY-SA 3.0\". Map instruction: \"keep source attribution and assess share-alike obligations for redistributed data.\" Map correction #4 is explicit that this does not reach NMRx's code: \"ChEMBL share-alike terms do not automatically license NMRx's application code.\"",
+    "#17 BindingDB \u2014 exact string: ChEMBL-derived records \"retain CC BY-SA 3.0 according to the maintainers' database paper\" (BindingDB-curated records are CC BY 4.0). Mixed-licence source: the CC BY-SA 3.0 obligation travels with the imported ChEMBL subset only, so the two subsets must stay separable in NMRx storage and exports.",
+    "#22 DrugCentral \u2014 exact string: \"Official license page links CC BY-SA 4.0.\"",
+    "#31 Open Reaction Database (ORD) \u2014 exact string: \"Data CC BY-SA as stated by project overview; verify exact version in selected release.\" The map gives no version number, so the exact CC BY-SA version is itself unverified; do not assume 4.0.",
+    "#48 IUPHAR/BPS Guide to PHARMACOLOGY \u2014 exact string: \"Database ODbL and contents CC BY-SA 4.0\". This is the only ODbL in the catalog \u2014 a database-rights share-alike that can attach to a derived database, on top of CC BY-SA 4.0 on the contents, plus provider commercial access fees.",
+    "#8 Chemotion Repository \u2014 exact string: per-publication licences \"including CC BY-SA 4.0, CC BY, CC0 and public-domain markings.\" Share-alike is present per publication, so a single ingest can mix CC BY-SA 4.0 records with CC0 ones; they must not be pooled into one redistributed table.",
+    "#12 MassBank \u2014 exact string: record LICENSE field terms \"vary, including CC0, CC BY, share-alike and non-commercial variants.\" The map does not name which share-alike licence, so the exact string must be read from each record's mandatory LICENSE field before redistribution.",
+    "#10 Raman Base \u2014 exact string: record licences \"can differ, including CC0 and non-commercial share-alike terms. Specific record terms override defaults.\" No licence version is given in the map; these records are both share-alike and NC, the worst combination for a commercial product."
+  ],
+  "traps": [
+    "Code repo licence read as dataset licence. #7 NMRBank/NMRExtractor: \"Repository advertises MIT for code, but dataset-specific terms and source-publication rights were not independently established here\" \u2014 an MIT GitHub repo next to a Hugging Face dataset deposit does not license the CSV/JSON. #30 ioChem-BD: \"AGPL on API documentation describes software, not necessarily the hosted data.\" #26 QCArchive: \"Check selected dataset terms, not only the server-software license.\" #11 OpenSpecy: \"do not copy the OpenSpecy software license onto all contributed spectra.\" #31 ORD and #15 Reactome both state software is licensed separately from data.",
+    "Government/institutional domain read as public domain. #45 NIST Chemistry WebBook, on webbook.nist.gov: \"Government hosting does not automatically make all content public domain\" and \"Standard Reference Data compilation copyright applies.\" #24 DailyMed on nlm.nih.gov: \"NLM distinguishes government works from contributed content. Do not assume all company-submitted label content has a blanket CC0 license.\" #1 PubChem on ncbi.nlm.nih.gov is contributor-licensed, not NIH-licensed. #46 AIST SDBS is on a go.jp government host and still prohibits robot collection and requires contacting the operator for profit use. The map's own paste-prompt says it outright: \"Do not infer a dataset's license from its code repository or from its government/university domain.\"",
+    "Free to read / free to download treated as free to reuse commercially. #9 RRUFF: \"Free viewing/downloading exists, but a formal reuse license for the intended commercial use was not established in this review.\" #41 PMC OA: \"Do not crawl every article webpage or assume that freely readable equals commercially reusable.\" #50 CCDC: \"free viewing does not grant a blanket database-mirroring right.\" #49 DrugBank: \"Free browsing or academic access is not a license to build a commercial dataset.\" #44 CAS Common Chemistry records are publicly readable but CC BY-NC 4.0.",
+    "Aggregator default licence applied to every record. #13 MoNA: \"Default content license CC BY 4.0 with possible separately arranged exceptions.\" #14 GNPS: CC0 is only for \"direct reference contributions\"; \"imported libraries retain their own terms.\" #12 MassBank: the authoritative term is each record's \"mandatory LICENSE field\", which can be NC. #10 Raman Base: \"Specific record terms override defaults.\" #33 Materials Project: \"Core data CC BY 4.0; contributed data require their own rights review.\" #8 Chemotion is per-publication with no repository default.",
+    "Website footer or portal licence applied to API records. #6 nmrXiv states this explicitly: \"Do not infer every record's rights from the website footer\" \u2014 and \"parent licenses propagate to spectra\", so the project/sample level must be read, not the site.",
+    "Metadata CC0 mistaken for payload CC0. #38 DataCite: \"Metadata is CC0; linked datasets and papers are explicitly outside that blanket waiver.\" #42 Zenodo: \"Metadata CC0; each deposited dataset/file has its own declared license and access status\" \u2014 the spectra files are the payload, not the metadata. #37 re3data: registry records CC0 \"does not license the research data held by listed repositories.\" #35 NFDI4Chem: \"indexed metadata is not permission to copy every linked file.\" #39 Crossref: metadata is broadly reusable but \"abstracts can retain publisher/author copyright.\"",
+    "Carrying forward a prior conversation's licence claim. #4 nmrshiftdb2 is the named case: \"The license text did not render in this research... do not carry forward the earlier blanket share-alike claim without checking\", and map correction #4 says \"the earlier blanket license statement should be treated as unverified.\" A naive implementer re-asserts the remembered share-alike (or open) claim from an earlier chat; the map has downgraded it to unverified. This matters because nmrshiftdb2 is a \"First connections\" NMR priority.",
+    "\"Free access\" policy language read as CC0. #5 BMRB metabolomics: \"Metabolomics policy says free access but does not itself specify a standard reuse license. Confirm scope of the applicable archive/data terms before assigning CC0 to this subset.\" The trap is literally assigning CC0 because access is free.",
+    "Archive-wide CC0 stretched over derived annotations and site content. #18 RCSB: \"PDB archive and RCSB programmatic API data CC0. Website articles have separate rights.\" #19 PDBe: \"PDB archive CC0; preserve provenance of additional annotations\" \u2014 PDBe-KB annotations are not covered by the archive's CC0 and the access statement must be consulted. #15 Reactome: data CC0, but \"artwork is CC BY 4.0, and software has separate terms.\" #21 AlphaFold: predictions CC BY 4.0, but \"separate AlphaFold software/services can have different terms.\"",
+    "Free API key mistaken for no gate, or open rights mistaken for open access. #25 EPA CTX (\"free individual API key\"), #23 openFDA (\"Plan regular API access with a free key\") and #33 Materials Project (\"account API key\") all have permissive or open rights but still require registration before the API is usable \u2014 rights-clear is not access-clear. The reverse trap is #48 GtoPdb, where a previously anonymous API is changing: \"Official 2026 notice introduces registration and API keys, with the API transition scheduled around September 15-17, 2026\" and \"Older descriptions of anonymous API access can be stale\" \u2014 that window is now, so cached docs will be wrong.",
+    "Assuming a record page implies a bulk right. #1 PubChem: \"PubChem explicitly warns some datasets cannot be bulk downloaded under their contributor agreements\" \u2014 per-record API access does not imply the same dataset may be bulk pulled. Same shape at #50 CCDC, where per-structure lookup is explicitly \"separate from full CSD Portfolio/API access under a license.\"",
+    "Licence assumed constant across releases and versions. #28 PubChemQC: only the \"newer PM6 and B3LYP//PM6 datasets are CC BY 4.0... verify each chosen release.\" #31 ORD: \"verify exact version in selected release\" \u2014 the map never names the CC BY-SA version. #34 NOMAD: CC BY 4.0 applies to published data, \"verify selected entry's release/publication status.\" #22 DrugCentral: \"Some download files are dated 2023. Record each file's date and source.\"",
+    "Images and annotation links mistaken for licensed numerical data. #46 SDBS: \"Public spectral images are not automatically licensed digital peak tables.\" #47 SpectraBase: \"Annotation links and thumbnails are not reusable numerical spectra.\" Reading a peak table off a freely viewable image does not inherit any reuse right.",
+    "Aggregated copies treated as independently licensed evidence. #17 BindingDB carries CC BY-SA 3.0 into an otherwise CC BY 4.0 source via imported ChEMBL records; #13 MoNA/#12 MassBank/#14 GNPS mirror each other. Deduplicating without keeping source lineage both inflates evidence counts and silently strips the stricter licence off the surviving copy.",
+    "Deposit/mirror host assumed to carry the deposit's licence. The map warns at line 41 that \"Large shared services such as GitHub, Hugging Face, Figshare and SourceForge may deliver files through other hosts; resolve the exact file link\" \u2014 #7 NMRBank (Hugging Face), #31 ORD (Hugging Face mirror), #27 QM9 / #29 ANI (figshare), #4 nmrshiftdb2 (SourceForge redirects). A mirror's platform terms are not the deposit's licence, and the mirrored copy may not carry the licence file at all."
+  ],
+  "summary": "Swept all 50 sources in /root/.claude/uploads/8e17b3ed-5e1d-510c-b487-8bd3f4a0e311/18abb5f3-NMRx_Chemical_Database_Map.md against the parallel entries in /root/.claude/uploads/8e17b3ed-5e1d-510c-b487-8bd3f4a0e311/958a19a8-NMRx_Chemical_Source_Registry.json. No network calls were attempted; nothing below is verified, only documented in the map (provenance: documented, with bucket assignment inferred from the map's own wording). The registry sets automated_ingestion_approved: false on all 50 entries and states \"This research grants no additional permissions.\"\n\nCounts: usable_when_unblocked 19, rights_unverified 20, non_commercial_only 3, licence_or_account_required 7, harvesting_prohibited 1 (= 50).\n\nBucketing rule I applied, so the borderline calls are auditable: usable_when_unblocked means the map names a specific open licence (CC0 / CC BY / CC BY-SA / public-domain marking / EPA's \"free of copyright restrictions\") covering the core data a connector would pull, with no bar on commercial use. rights_unverified means the map names no licence for the data, says the text could not be retrieved, or makes the licence purely per-record with no stated default. Where a source had two postures I took the more restrictive one and said so in the entry rather than splitting it.\n\nThree calls worth flagging to the parent agent:\n1. openFDA (#23), EPA CTX (#25) and Materials Project (#33) sit in licence_or_account_required on the strength of the bucket definition's \"or API key\", not because their rights are restrictive \u2014 EPA's terms are the most permissive in the catalog. They are key-gated, not licence-gated, and are a different problem from DrugBank/CCDC/GtoPdb, which need a negotiated or paid agreement.\n2. Wiley SpectraBase (#47) has three simultaneous postures \u2014 NC/ND on the free annotation export, negotiation for commercial integration, and an explicit \"do not turn free lookup into a scraping connector\". I bucketed it non_commercial_only because the NC/ND term governs what is obtainable without a deal; the other two postures are recorded in its entry.\n3. PMC OA Subset (#41) is channel-restricted (\"Only use the official authorized retrieval channels... Do not crawl every article webpage\") but authorized automated channels do exist (OAI-PMH, E-Utilities, BioC), so it is not harvesting_prohibited. AIST SDBS (#46) is the only source where the provider forbids automated collection outright.\n\nTwo things the map hedges that I did not upgrade: nmrshiftdb2 (#4) stays unverified despite being a \"First connections\" NMR priority \u2014 the provider calls it open content but the licence text did not render, and correction #4 says the earlier blanket claim \"should be treated as unverified\". NIST WebBook (#45) stays unverified rather than licence-required, because the map explicitly says \"The review does not establish that every commercial use requires the same paid license.\"\n\nOperational consequence for NMRx: of the four sources the map names as the NMR priority path (nmrshiftdb2, BMRB metabolomics, nmrXiv, Chemotion), all four land in rights_unverified. The experimental-NMR rights question is the binding constraint, and it is unresolved in this evidence \u2014 separate from the network block. Share-alike obligations attach through 8 sources; the map's correction #4 is explicit that a database's share-alike terms do not license NMRx's own application code, which is the single most consequential misreading available here."
+}

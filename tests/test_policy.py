@@ -122,3 +122,41 @@ class TestBudget(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestHostScopeIsDocumented(unittest.TestCase):
+    """Granting a host can silently grant more than its name suggests."""
+
+    def setUp(self):
+        self.policy = load_policy()
+        self.by_host = {g.host: g for g in self.policy.granted_hosts()}
+
+    def test_every_granted_host_carries_a_scope_caution(self):
+        for host, grant in self.by_host.items():
+            with self.subTest(host=host):
+                self.assertTrue(grant.hostname_caution,
+                                f"{host} has no recorded caution about what it does and does not cover")
+
+    def test_the_ebi_scope_warning_names_the_services_it_also_grants(self):
+        caution = self.by_host["www.ebi.ac.uk"].hostname_caution
+        for service in ("ChEMBL", "ChEBI", "UniChem", "PDBe", "Europe PMC"):
+            with self.subTest(service=service):
+                self.assertIn(service, caution)
+
+    def test_the_bindingdb_caution_names_all_three_spellings(self):
+        caution = self.by_host["www.bindingdb.org"].hostname_caution
+        self.assertIn("ww.bindingdb.org", caution)
+        self.assertIn("no www", caution)
+
+    def test_documented_but_ungranted_bulk_hosts_are_all_refused(self):
+        """Every host named as 'documented but not granted' must actually be refused."""
+        import json
+        from pathlib import Path
+        doc = json.loads((Path(__file__).resolve().parent.parent / "nmrx" / "data"
+                          / "access_policy.json").read_text())
+        hosts = [h["host"] for h in doc["pilot"]["_documented_but_not_granted"]["hosts"]]
+        self.assertGreaterEqual(len(hosts), 6)
+        for host in hosts:
+            with self.subTest(host=host), self.assertRaises(PolicyDenied) as ctx:
+                self.policy.authorize(f"https://{host}/x")
+            self.assertEqual(ctx.exception.reason_code, "HOST_NOT_GRANTED")
