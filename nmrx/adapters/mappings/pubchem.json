@@ -1,0 +1,105 @@
+{
+  "source_id": "pubchem",
+  "name": "PubChem",
+  "schema_confirmed": false,
+  "hosts_required": [
+    "pubchem.ncbi.nlm.nih.gov"
+  ],
+  "routes": [
+    {
+      "purpose": "identity and computed properties for one identifier (PUG REST)",
+      "url_template": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/{namespace}/{identifier}/property/{properties}/JSON",
+      "provenance": "inferred",
+      "doc_link": "https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest",
+      "response_format": "JSON PropertyTable",
+      "must_confirm_live": "path shape composed from the documented PUG REST description; confirm against the docs page"
+    },
+    {
+      "purpose": "source-attributed record report including contributed experimental data (PUG View)",
+      "url_template": "https://pubchem.ncbi.nlm.nih.gov/docs/programmatic-access",
+      "provenance": "documented",
+      "doc_link": "https://pubchem.ncbi.nlm.nih.gov/docs/programmatic-access",
+      "response_format": "documentation page",
+      "must_confirm_live": "PUG View route and section filters have not been read"
+    },
+    {
+      "purpose": "per-source download and rights statements",
+      "url_template": "https://pubchem.ncbi.nlm.nih.gov/docs/downloads",
+      "provenance": "documented",
+      "doc_link": "https://pubchem.ncbi.nlm.nih.gov/docs/downloads",
+      "response_format": "documentation page",
+      "must_confirm_live": "which contributor datasets forbid bulk download is unread"
+    }
+  ],
+  "capabilities": {},
+  "blocking_unknowns": [
+    "no live response has been observed; every host is blocked at CONNECT by the environment egress policy"
+  ],
+  "notes": "Identity and descriptor backbone. Also holds bioassay data and source-attributed contributed experimental annotations -- the earlier claim that it has no measurements was too broad. Not every linked spectrum is a downloadable assigned dataset. Some contributor datasets may not be bulk downloaded at all.",
+  "record_mapping": {
+    "_status": "provisional -- no real response has been observed; paths are placeholders",
+    "records_path": "",
+    "molecule": {
+      "inchikey": {
+        "path": "inchikey"
+      },
+      "smiles": {
+        "path": "smiles"
+      },
+      "formula": {
+        "path": "formula"
+      },
+      "atom_count": {
+        "path": "atom_count",
+        "transform": "int"
+      }
+    },
+    "source": {
+      "record_id": {
+        "path": "id"
+      },
+      "url": {
+        "path": "url"
+      },
+      "licence": {
+        "path": "license"
+      }
+    },
+    "nucleus": {
+      "path": "nucleus"
+    },
+    "conditions": {
+      "solvent": {
+        "path": "solvent"
+      },
+      "temperature_k": {
+        "path": "temperature_k",
+        "transform": "float"
+      },
+      "reference_compound": {
+        "path": "reference"
+      },
+      "spectrometer_frequency_mhz": {
+        "path": "frequency",
+        "transform": "float"
+      }
+    },
+    "shifts": {
+      "path": "peaks",
+      "atom_index": {
+        "path": "atom",
+        "transform": "int"
+      },
+      "element": {
+        "path": "element"
+      },
+      "shift_ppm": {
+        "path": "ppm",
+        "transform": "float"
+      },
+      "multiplicity": {
+        "path": "multiplicity"
+      }
+    }
+  }
+}

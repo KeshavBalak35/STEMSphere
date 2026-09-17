@@ -1,0 +1,145 @@
+{
+  "source_id": "chemotion",
+  "name": "chemotion",
+  "schema_confirmed": false,
+  "hosts_required": [
+    "www.chemotion-repository.net"
+  ],
+  "routes": [
+    {
+      "purpose": "Authoritative list of Chemotion's public API routes (molecule, reaction, RDF). The map names these route families but re",
+      "url_template": "https://chemotion.net/docs/repo/interfaces/oa_open_apis",
+      "provenance": "documented",
+      "doc_link": "https://chemotion.net/docs/repo/interfaces/oa_open_apis",
+      "response_format": "unknown - the map records only that 'Public molecule/reaction/RDF APIs' exist and that 'API docs say public routes require no authentication'. No endpoint paths, parameters or response schemas appear ",
+      "must_confirm_live": "response shape unconfirmed -- documentation page has not been read"
+    },
+    {
+      "purpose": "Machine-readable API specification for the repository; source of truth for exact paths, query parameters and response sc",
+      "url_template": "https://www.chemotion-repository.net/swagger_doc",
+      "provenance": "documented",
+      "doc_link": "https://www.chemotion-repository.net/swagger_doc",
+      "response_format": "unknown - the map cites the Swagger doc's existence only. Presumably an OpenAPI/Swagger description, but its content, version and route list are not reproduced in the map and must not be guessed.",
+      "must_confirm_live": "response shape unconfirmed -- documentation page has not been read"
+    },
+    {
+      "purpose": "Rights and access conditions, including the registration requirement the map flags for some dataset downloads; needed fo",
+      "url_template": "https://chemotion.net/docs/repo/faq",
+      "provenance": "documented",
+      "doc_link": "https://chemotion.net/docs/repo/faq",
+      "response_format": "unknown - the map summarises it as 'FAQ and conditions' and notes 'FAQ mentions registration for some dataset downloads'. Exact terms not reproduced.",
+      "must_confirm_live": "response shape unconfirmed -- documentation page has not been read"
+    },
+    {
+      "purpose": "Molecule lookup/search route - the entry point for find_structure. Exact path unknown; resolve from swagger_doc before w",
+      "url_template": "https://www.chemotion-repository.net/",
+      "provenance": "inferred",
+      "doc_link": "",
+      "response_format": "unknown - inferred only from the map's phrase 'Public molecule/reaction/RDF APIs'. The search key (InChI/InChIKey/SMILES/name/ID) and the response body are not documented anywhere in the attached file",
+      "must_confirm_live": "exact path, parameters and response shape are unconfirmed"
+    },
+    {
+      "purpose": "RDF metadata route - candidate for pulling structured per-publication metadata and license statements without downloadin",
+      "url_template": "https://www.chemotion-repository.net/",
+      "provenance": "inferred",
+      "doc_link": "",
+      "response_format": "unknown - the map names an 'RDF' API among the public routes but gives no serialisation, vocabulary or example. Whether it carries NMR conditions or atom assignments is unestablished.",
+      "must_confirm_live": "exact path, parameters and response shape are unconfirmed"
+    },
+    {
+      "purpose": "BagIt archive retrieval for linked instrument files (raw/processed spectra), after discovering a download link from a re",
+      "url_template": "https://www.chemotion-repository.net/",
+      "provenance": "inferred",
+      "doc_link": "",
+      "response_format": "unknown - the map documents 'BagIt download-link discovery' and warns that not every linked file is immediately downloadable. BagIt is a bag/manifest archive convention, so an archive is expected, but",
+      "must_confirm_live": "exact path, parameters and response shape are unconfirmed"
+    }
+  ],
+  "capabilities": {
+    "find_structure": "partial",
+    "retrieve_measurements": "partial",
+    "atom_assignments_and_conditions": "unknown",
+    "establish_rights": "partial",
+    "calibration_eligible": "unknown"
+  },
+  "blocking_unknowns": [
+    "no live response has been observed; every host is blocked at CONNECT by the environment egress policy",
+    "Exact API route paths and parameters. The map names 'molecule/reaction/RDF APIs' but reproduces no path. Fetch https://www.chemotion-repository.net/swagger_doc and https://chemotion.net/docs/repo/interfaces/oa_open_apis and bind the adapter to the real spec - the map's own instruction is 'Confirm the official API schemas rather than guessing routes.'",
+    "Whether structure matching is supported at all, and by what key: InChIKey/InChI/SMILES exact match, or only browse-by-ID and text search. Without this, find_structure cannot be implemented and a submitted molecule cannot be matched to a deposit.",
+    "Whether NMR conditions exist as fields: solvent, temperature, reference compound, nucleus, spectrometer frequency. None are documented for Chemotion in the map. Inspect a real published record before claiming any of them, and per the map's audit rule distinguish fields genuinely absent upstream from fields dropped by an export or parser.",
+    "Whether atom assignments exist in machine-readable form (assigned peak lists with atom mapping) or only as free-text characterization or images, and whether assignment indices can be mapped onto the deposited structure's atom numbering. The map explicitly refuses this assumption.",
+    "Whether deposits carry a measured vs calculated vs predicted flag. The map requires that distinction to be preserved and shows sibling sources mixing the two (nmrshiftdb2 calculated spectra; BMRB theoretical entries). If Chemotion exposes no such flag, records cannot enter a strict calibration export.",
+    "Metadata access vs file access: API docs reportedly claim public routes need no authentication while the FAQ mentions registration for some dataset downloads. Test the two separately and record which deposits are gated. Do not create an account - the attached research grants no permission for accounts.",
+    "Actual file-delivery host and redirect behaviour for BagIt/instrument downloads. The map lists www.chemotion-repository.net as carrying 'repository, API and file links', but warns generally that file-storage hosts can differ from the portal; a redirect elsewhere would need its own allowlist entry and its own rights check.",
+    "Per-record license retrieval: is the license (CC BY-SA 4.0 / CC BY / CC0 / public-domain mark) exposed as a machine-readable field on the molecule/reaction/RDF response, or only on the human-readable landing page? An adapter must read it per record, and CC BY-SA share-alike obligations must be assessed against NMRx's intended use before any record is reused.",
+    "Duplication against sources already planned: whether Chemotion deposits overlap experiments in nmrXiv or surface through NFDI4Chem (registry entry 35 indexes Chemotion, MassBank, nmrXiv, RADAR4Chem and DaRUS). Deduplicate shared experiments without deleting source lineage.",
+    "Scale and per-record cost: how many published deposits carry NMR, and typical BagIt archive size, needed before any bounded harvest. The registry sets automated_ingestion_approved: false, so no large download is authorized by this research."
+  ],
+  "notes": "Per-publication licences (CC BY-SA 4.0, CC BY, CC0, public domain marks) are the best rights position of the four, but not every spectrum has atom assignments and not every linked file downloads without registration. Test metadata and files separately.",
+  "record_mapping": {
+    "_status": "provisional -- no real response has been observed; paths are placeholders",
+    "records_path": "",
+    "molecule": {
+      "inchikey": {
+        "path": "inchikey"
+      },
+      "smiles": {
+        "path": "smiles"
+      },
+      "formula": {
+        "path": "formula"
+      },
+      "atom_count": {
+        "path": "atom_count",
+        "transform": "int"
+      }
+    },
+    "source": {
+      "record_id": {
+        "path": "id"
+      },
+      "url": {
+        "path": "url"
+      },
+      "licence": {
+        "path": "license"
+      }
+    },
+    "nucleus": {
+      "path": "nucleus"
+    },
+    "conditions": {
+      "solvent": {
+        "path": "solvent"
+      },
+      "temperature_k": {
+        "path": "temperature_k",
+        "transform": "float"
+      },
+      "reference_compound": {
+        "path": "reference"
+      },
+      "spectrometer_frequency_mhz": {
+        "path": "frequency",
+        "transform": "float"
+      }
+    },
+    "shifts": {
+      "path": "peaks",
+      "atom_index": {
+        "path": "atom",
+        "transform": "int"
+      },
+      "element": {
+        "path": "element"
+      },
+      "shift_ppm": {
+        "path": "ppm",
+        "transform": "float"
+      },
+      "multiplicity": {
+        "path": "multiplicity"
+      }
+    }
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "source_id": "nmrshiftdb2",
+  "name": "nmrshiftdb2",
+  "schema_confirmed": false,
+  "hosts_required": [
+    "nmrshiftdb.nmr.uni-koeln.de"
+  ],
+  "routes": [
+    {
+      "purpose": "Official API specification \u2014 the only stated programmatic interface. Must be read first to learn which routes exist (str",
+      "url_template": "https://nmrshiftdb.nmr.uni-koeln.de/api-docs/",
+      "provenance": "documented",
+      "doc_link": "https://nmrshiftdb.nmr.uni-koeln.de/api-docs/",
+      "response_format": "unknown \u2014 the map names it as \"Official Swagger API documentation\" but enumerates no endpoint, parameter or response field. Presumably a Swagger/OpenAPI description, but neither the spec version nor a",
+      "must_confirm_live": "response shape unconfirmed -- documentation page has not been read"
+    },
+    {
+      "purpose": "Data and official downloads landing page \u2014 entry point for bulk SDF, NMReDATA and CML releases.",
+      "url_template": "https://nmrshiftdb.nmr.uni-koeln.de/nmrshiftdbhtml/t1.html",
+      "provenance": "documented",
+      "doc_link": "https://nmrshiftdb.nmr.uni-koeln.de/nmrshiftdbhtml/t1.html",
+      "response_format": "An HTML page linking the bulk downloads; the map documents the formats as \"bulk SDF, NMReDATA and CML\" and warns links may redirect to SourceForge and onward to download mirrors. Exact file names, rel",
+      "must_confirm_live": "response shape unconfirmed -- documentation page has not been read"
+    },
+    {
+      "purpose": "Data license text \u2014 required to resolve the rights verdict.",
+      "url_template": "https://nmrshiftdb.nmr.uni-koeln.de/License.txt",
+      "provenance": "documented",
+      "doc_link": "https://nmrshiftdb.nmr.uni-koeln.de/License.txt",
+      "response_format": "unknown \u2014 the map labels this \"Provider's data-license link (unreadable in this review)\"; the license text did not render, so neither its terms nor its version are known. Do not assume share-alike.",
+      "must_confirm_live": "response shape unconfirmed -- documentation page has not been read"
+    },
+    {
+      "purpose": "Official bulk-download landing pages hosting the release files the downloads page points to.",
+      "url_template": "https://sourceforge.net/",
+      "provenance": "inferred",
+      "doc_link": "",
+      "response_format": "unknown. The map documents `sourceforge.net` only as the host for \"official bulk-download landing pages\" and warns that \"SourceForge can redirect to additional download mirrors that must be resolved e",
+      "must_confirm_live": "exact path, parameters and response shape are unconfirmed"
+    }
+  ],
+  "capabilities": {
+    "find_structure": "partial",
+    "retrieve_measurements": "yes",
+    "atom_assignments_and_conditions": "partial",
+    "establish_rights": "no",
+    "calibration_eligible": "partial"
+  },
+  "blocking_unknowns": [
+    "no live response has been observed; every host is blocked at CONNECT by the environment egress policy",
+    "Swagger contents: which routes the API actually exposes, whether any of them accepts a structure query (InChI / InChIKey / SMILES / formula / substructure), the request parameters, response schema, pagination and any rate limit. The map names the api-docs URL but enumerates zero endpoints \u2014 every route an adapter would call is currently unknown.",
+    "Whether authentication, an account or an API key is required for the API or for bulk downloads. The map says nothing either way for this source, so no-auth cannot be assumed.",
+    "Measured vs. calculated discrimination: the map states the database \"Contains calculated as well as measured spectra\" but never establishes that this status is carried as a machine-readable per-spectrum field. Until a filterable flag is confirmed, no record can be labeled experimental, and nothing can enter a calibration export.",
+    "Presence, field names and units of experimental conditions per spectrum \u2014 solvent, temperature, reference compound/referencing convention, nucleus and spectrometer frequency \u2014 in both the API response and the bulk formats. The map only instructs an audit of \"solvent and reference metadata\"; temperature and frequency are not mentioned for this source at all.",
+    "Atom-mapping semantics: how peak entries index into the structure record's atoms (SDF atom-block ordering vs. NMReDATA atom labels vs. CML atom IDs), and whether that mapping is complete per spectrum. The map explicitly requires auditing \"atom mapping... for the exact release\".",
+    "License: fetch and read https://nmrshiftdb.nmr.uni-koeln.de/License.txt, record its exact version and date, and determine separately whether it permits (a) bulk copying, (b) storing derived peak/assignment records in NMRx, (c) redistributing a calibration export. The earlier share-alike assumption must be treated as unsupported until this is read.",
+    "Exact bulk file URLs, the current release identifier, and the real download-mirror hostnames SourceForge redirects to \u2014 those redirect targets are not named in the map and would each need allowlisting; byte sizes are also unknown and the map warns not to assume bulk servers imply tens of gigabytes either way.",
+    "Parser-vs-upstream attribution: which release the previous NMRx parse consumed and whether the earlier missing-metadata findings reflect fields genuinely absent upstream or fields dropped by that export/parser. The map demands this distinction and warns against judging the source on \"just the subset previously parsed\".",
+    "Structure identity fidelity in the release: whether stereochemistry, charge, salt form, tautomer and isotope labeling are represented precisely enough for exact-molecule matching rather than approximate name/skeleton matching.",
+    "Whether the API and the bulk release expose the same records and the same fields, so an adapter can choose one route without silently losing assignments or conditions available on the other."
+  ],
+  "notes": "Strongest source for assigned 1H/13C shifts, but it mixes CALCULATED with MEASURED spectra -- evidence_class must be read per record, never assumed. Licence text did not render during research, so rights are unverified (blocks CAL-008).",
+  "record_mapping": {
+    "_status": "provisional -- no real response has been observed; paths are placeholders",
+    "records_path": "",
+    "molecule": {
+      "inchikey": {
+        "path": "inchikey"
+      },
+      "smiles": {
+        "path": "smiles"
+      },
+      "formula": {
+        "path": "formula"
+      },
+      "atom_count": {
+        "path": "atom_count",
+        "transform": "int"
+      }
+    },
+    "source": {
+      "record_id": {
+        "path": "id"
+      },
+      "url": {
+        "path": "url"
+      },
+      "licence": {
+        "path": "license"
+      }
+    },
+    "nucleus": {
+      "path": "nucleus"
+    },
+    "conditions": {
+      "solvent": {
+        "path": "solvent"
+      },
+      "temperature_k": {
+        "path": "temperature_k",
+        "transform": "float"
+      },
+      "reference_compound": {
+        "path": "reference"
+      },
+      "spectrometer_frequency_mhz": {
+        "path": "frequency",
+        "transform": "float"
+      }
+    },
+    "shifts": {
+      "path": "peaks",
+      "atom_index": {
+        "path": "atom",
+        "transform": "int"
+      },
+      "element": {
+        "path": "element"
+      },
+      "shift_ppm": {
+        "path": "ppm",
+        "transform": "float"
+      },
+      "multiplicity": {
+        "path": "multiplicity"
+      }
+    }
+  }
+}
