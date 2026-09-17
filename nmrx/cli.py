@@ -16,6 +16,8 @@ from .reports.blockers import build as build_blockers
 from .reports.blockers import render_text as render_blockers
 from .reports.coverage import render_text as render_coverage
 from .reports.coverage import source_coverage
+from .reports.ranking import rank_next_connectors
+from .reports.ranking import render_text as render_ranking
 from .sources.policy import load_policy
 from .sources.registry import load_registry
 
@@ -97,6 +99,29 @@ def _cmd_coverage(args) -> int:
     return 0
 
 
+def _load_capabilities() -> dict:
+    """Capability verdicts recorded per source in its adapter plan, if it has one."""
+    from .adapters.base import AdapterPlan, available_plans
+
+    out = {}
+    for source_id in available_plans():
+        caps = AdapterPlan.load(source_id).capabilities
+        if caps:
+            out[source_id] = {k: {"verdict": v, "evidence": ""} for k, v in caps.items()}
+    return out
+
+
+def _cmd_next(args) -> int:
+    ranked = rank_next_connectors(capabilities=_load_capabilities(), limit=args.limit)
+    if args.json:
+        print(json.dumps([r.to_dict() for r in ranked], indent=2))
+        return 0
+    print("Best next connectors, ranked by useful new NMR data.")
+    print("Scores are computed from the registry and recorded verdicts, not asserted.\n")
+    print(render_ranking(ranked))
+    return 0
+
+
 def _cmd_blockers(args) -> int:
     report = build_blockers()
     if args.json:
@@ -139,6 +164,11 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("coverage", help="source coverage and NMR completeness")
     p.add_argument("--json", action="store_true")
     p.set_defaults(func=_cmd_coverage)
+
+    p = sub.add_parser("next", help="rank the best next connectors by useful new NMR data")
+    p.add_argument("--limit", type=int, default=5)
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(func=_cmd_next)
 
     p = sub.add_parser("blockers", help="what is blocking each source, and who can fix it")
     p.add_argument("--json", action="store_true")
