@@ -1,0 +1,113 @@
+{
+  "_note": "Definitions for every controlled vocabulary the registry uses. Invented terms with no definition are how two readers quietly disagree about what a field means.",
+  "nmrx_tier": {
+    "_meaning": "CONNECTION tier -- how close a source is to being wired up. Can differ from map_priority, which is preserved verbatim from the research.",
+    "pilot": "Served by a host already granted in access_policy.json.",
+    "nmr_expansion": "The map's recommended next NMR additions.",
+    "next_connection": "Worth connecting soon, but needs a new host or a key.",
+    "later_extension": "Useful, not on the critical path.",
+    "specialist": "Narrow domain (minerals, materials, Raman).",
+    "discovery": "An index or registry for finding datasets, not a measurement source.",
+    "restricted": "In the map's permission-or-special-review group."
+  },
+  "status": {
+    "_meaning": "How far NMRx has actually got with this source.",
+    "unimplemented": "No plan, no code.",
+    "documented_only": "Documentation read. Nothing executed against the service.",
+    "blocked": "Attempted and refused, at the network or the provider.",
+    "fixture_tested": "Parsing exercised end to end against a saved payload.",
+    "live_tested": "A real response from the real service has been read."
+  },
+  "rights.status": {
+    "_meaning": "What provider DOCUMENTATION states. Evidence, never proof of authorization.",
+    "_no_verified_value": "There is deliberately no 'open_verified'. The research itself records that no live connector test was performed, so no licence here has been verified against a live service.",
+    "open_documented": "Documentation names an open licence, with a link.",
+    "per_record": "Terms vary record by record; the record's own licence field governs.",
+    "open_unverified": "A licence is named but was not read on the exact data.",
+    "unverified": "The research could not establish the licence at all.",
+    "non_commercial": "A documented NC term applies.",
+    "licensed_required": "Needs a negotiated licence or paid agreement."
+  },
+  "rights.commercial_use": {
+    "yes": "Documented licence permits commercial use with no copyleft obligation.",
+    "yes_with_share_alike": "Permitted, but a share-alike obligation travels with the data.",
+    "no": "A documented term forbids it.",
+    "negotiate": "Available only under a negotiated agreement.",
+    "unknown": "Not established."
+  },
+  "rights.obligations": {
+    "_meaning": "Machine-readable duties attached to reuse, so an exporter can see copyleft without parsing prose.",
+    "attribution": "Credit required.",
+    "share_alike": "Derivatives must carry the same licence.",
+    "share_alike_on_chembl_derived_subset": "Only the imported ChEMBL rows are copyleft.",
+    "share_alike_on_some_publications": "Applies per publication, not repository-wide.",
+    "database_share_alike_odbl": "ODbL: a database right that can attach to a derived database.",
+    "per_record_licence_field": "The record's own LICENSE field governs; can be NC.",
+    "preserve_constituent_library_provenance": "Originating library must stay recorded.",
+    "preserve_imported_library_terms": "Imported libraries keep their own terms.",
+    "non_commercial_on_some_records": "Some records carry an NC term.",
+    "share_alike_on_some_records": "Some records carry a share-alike term."
+  },
+  "harvest_policy": {
+    "_meaning": "PROVIDER-side posture only. It says nothing about whether rights are established, and it NEVER overrides automated_ingestion_approved: false. Use SourceRegistry.harvestable(), which also requires established rights.",
+    "allowed_when_unblocked": "No provider prohibition and no licence gate.",
+    "manual_only": "Look it up by hand; do not automate.",
+    "prohibited": "The provider forbids automated collection.",
+    "licence_required": "A licence or account must exist before any request."
+  },
+  "engine_supported": {
+    "_meaning": "Whether NMRx's quantum engine covers this chemistry. Searchability in a database does not imply the calculation is supported.",
+    "true": "Within the engine's validated domain.",
+    "bounded": "Within a stated, limited domain only.",
+    "false": "Outside it (inorganic, solid-state, materials).",
+    "unknown": "Not established."
+  },
+  "nmr_relevance.assignments/conditions": {
+    "yes": "Documented as present.",
+    "partial": "Present for some records.",
+    "no": "Documented as absent.",
+    "unknown": "Documentation does not say."
+  },
+  "access.routes[].provenance": {
+    "documented": "This exact URL appears in the research material.",
+    "inferred": "Composed from a description. The path is a guess until confirmed."
+  },
+  "_enum_values": {
+    "nmrx_tier": [
+      "pilot",
+      "nmr_expansion",
+      "next_connection",
+      "later_extension",
+      "specialist",
+      "discovery",
+      "restricted"
+    ],
+    "status": [
+      "unimplemented",
+      "documented_only",
+      "blocked",
+      "fixture_tested",
+      "live_tested"
+    ],
+    "rights.status": [
+      "open_documented",
+      "open_unverified",
+      "per_record",
+      "non_commercial",
+      "licensed_required",
+      "unverified"
+    ],
+    "harvest_policy": [
+      "allowed_when_unblocked",
+      "manual_only",
+      "prohibited",
+      "licence_required"
+    ],
+    "verdicts": [
+      "yes",
+      "partial",
+      "no",
+      "unknown"
+    ]
+  }
+}

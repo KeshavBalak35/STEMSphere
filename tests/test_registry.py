@@ -69,6 +69,51 @@ class TestRightsHonesty(unittest.TestCase):
                     "the map could not read this licence; it must not read as settled",
                 )
 
+    def test_no_source_claims_verified_rights(self):
+        """The research itself states there were no live checks, so nothing is 'verified'."""
+        for s in self.registry:
+            with self.subTest(source=s.id):
+                self.assertNotEqual(s.rights_status, "open_verified")
+
+    def test_harvestable_is_stricter_than_the_harvest_policy_field(self):
+        """No provider prohibition is not the same as having the rights to use the data."""
+        allowed = {s.id for s in self.registry.harvest_policy_allows()}
+        harvestable = {s.id for s in self.registry.harvestable()}
+        self.assertTrue(harvestable < allowed,
+                        "harvestable() must exclude sources whose licence nobody has read")
+        for s in self.registry.harvestable():
+            with self.subTest(source=s.id):
+                self.assertTrue(s.rights_established)
+
+    def test_share_alike_obligations_are_machine_readable(self):
+        """Copyleft must not live only in prose -- an exporter has to be able to see it."""
+        for source_id in ("chembl", "drugcentral", "ord", "gtopdb"):
+            with self.subTest(source=source_id):
+                self.assertTrue(self.registry[source_id].has_share_alike)
+
+    def test_share_alike_sources_do_not_read_as_plainly_commercial(self):
+        for s in self.registry:
+            if s.has_share_alike:
+                with self.subTest(source=s.id):
+                    self.assertNotEqual(s.commercial_use, "yes")
+
+    def test_documented_overlaps_are_data_not_prose(self):
+        self.assertIn("massbank", self.registry["mona"].republishes)
+        self.assertIn("chembl", self.registry["bindingdb"].republishes)
+        self.assertIn("rcsb", self.registry["pdbe"].overlaps_with)
+
+    def test_searchable_is_not_assumed_calculable(self):
+        """The map warns that extra databases do not extend the engine's validated domain."""
+        for source_id in ("cod", "materialsproject", "nomad", "csd"):
+            with self.subTest(source=source_id):
+                self.assertIs(self.registry[source_id].engine_supported, False)
+
+    def test_a_legal_prohibition_is_not_stored_as_a_rate_limit(self):
+        """A consumer reading documented_rate_limit as a throttle must not meet a no-robots rule."""
+        limit = self.registry["sdbs"].raw["access"].get("documented_rate_limit")
+        self.assertFalse(limit and "prohibit" in str(limit).lower())
+        self.assertIn("prohibit", self.registry["sdbs"].raw["access"]["prohibitions"].lower())
+
     def test_hedged_sources_do_not_assert_commercial_use(self):
         for source_id in self.HEDGED:
             with self.subTest(source=source_id):
@@ -174,3 +219,52 @@ class TestQueries(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestVocabularyIsDefined(unittest.TestCase):
+    """An invented term with no definition is how two readers quietly disagree."""
+
+    @classmethod
+    def setUpClass(cls):
+        import json
+        from pathlib import Path
+        cls.vocab = json.loads(
+            (Path(__file__).resolve().parent.parent / "nmrx" / "data" / "vocabulary.json").read_text()
+        )
+        cls.registry = load_registry()
+
+    def _defined(self, section):
+        return {k for k in self.vocab[section] if not k.startswith("_")}
+
+    def test_every_tier_in_use_is_defined(self):
+        used = {s.tier for s in self.registry}
+        self.assertTrue(used <= self._defined("nmrx_tier"), used - self._defined("nmrx_tier"))
+
+    def test_every_status_in_use_is_defined(self):
+        used = {s.status for s in self.registry}
+        self.assertTrue(used <= self._defined("status"))
+
+    def test_every_rights_status_in_use_is_defined(self):
+        used = {s.rights_status for s in self.registry}
+        self.assertTrue(used <= self._defined("rights.status"))
+
+    def test_every_harvest_policy_in_use_is_defined(self):
+        used = {s.harvest_policy for s in self.registry}
+        self.assertTrue(used <= self._defined("harvest_policy"))
+
+    def test_every_obligation_in_use_is_defined(self):
+        used = {o for s in self.registry for o in s.obligations}
+        self.assertTrue(used <= self._defined("rights.obligations"),
+                        used - self._defined("rights.obligations"))
+
+    def test_every_commercial_use_value_in_use_is_defined(self):
+        used = {s.commercial_use for s in self.registry}
+        self.assertTrue(used <= self._defined("rights.commercial_use"))
+
+    def test_the_vocabulary_records_that_nothing_is_verified(self):
+        self.assertIn("_no_verified_value", self.vocab["rights.status"])
+        self.assertNotIn("open_verified", self.vocab["rights.status"])
+
+    def test_the_vocabulary_warns_harvest_policy_is_not_permission(self):
+        note = self.vocab["harvest_policy"]["_meaning"]
+        self.assertIn("never overrides", note.lower())

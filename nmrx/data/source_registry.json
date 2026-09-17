@@ -80,13 +80,15 @@
         "label": "contributor-specific rights per contributing source",
         "commercial_use": "unknown",
         "evidence_link": "https://pubchem.ncbi.nlm.nih.gov/docs/downloads",
-        "notes": "The map records 'contributor-specific rights' and that 'PubChem explicitly warns some datasets cannot be bulk downloaded under their contributor agreements.' Contributing source licences must be preserved per record; no blanket PubChem licence applies."
+        "notes": "The map records 'contributor-specific rights' and that 'PubChem explicitly warns some datasets cannot be bulk downloaded under their contributor agreements.' Contributing source licences must be preserved per record; no blanket PubChem licence applies.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": true,
         "assignments": "unknown",
         "conditions": "unknown",
-        "note": "The map lists spectra annotations alongside contributed experimental properties, but warns that 'not every linked spectrum is a downloadable, assigned dataset', so assignment and condition coverage is unestablished."
+        "note": "The map lists spectra annotations alongside contributed experimental properties, but warns that 'not every linked spectrum is a downloadable, assigned dataset', so assignment and condition coverage is unestablished.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -105,7 +107,11 @@
           "Downloads and source rights",
           "https://pubchem.ncbi.nlm.nih.gov/docs/downloads"
         ]
-      ]
+      ],
+      "value": "Molecular structures, names, identifiers, computed descriptors, contributed experimental properties, spectra annotations and bioassays.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "unichem",
@@ -165,13 +171,15 @@
         "label": null,
         "commercial_use": "unknown",
         "evidence_link": null,
-        "notes": "The map only instructs: 'Check UniChem data terms and the licenses of destinations; linked sources do not inherit one blanket license.' No licence statement was retrieved, so rights remain unestablished."
+        "notes": "The map only instructs: 'Check UniChem data terms and the licenses of destinations; linked sources do not inherit one blanket license.' No licence statement was retrieved, so rights remain unestablished.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "UniChem supplies identifier cross-references only; it carries no spectra."
+        "note": "UniChem supplies identifier cross-references only; it carries no spectra.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -186,7 +194,11 @@
           "Identity versus connectivity",
           "https://www.ebi.ac.uk/training/online/courses/unichem-quick-tour/what-can-i-do-with-unichem/"
         ]
-      ]
+      ],
+      "value": "Cross-references between chemical identifiers across databases.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "chebi",
@@ -253,17 +265,21 @@
         ]
       },
       "rights": {
-        "status": "open_verified",
+        "status": "open_documented",
         "label": "CC BY 4.0",
         "commercial_use": "yes",
         "evidence_link": "https://www.ebi.ac.uk/chebi/about",
-        "notes": "The map states ChEBI rights as 'CC BY 4.0' without caveat and links the about/licence page as evidence. This reflects documentation review only, not a live check from this environment; downgrade to open_unverified if the pipeline requires a live licence fetch."
+        "notes": "The map states ChEBI rights as 'CC BY 4.0' without caveat and links the about/licence page as evidence. This reflects documentation review only, not a live check from this environment; downgrade to open_unverified if the pipeline requires a live licence fetch.",
+        "obligations": [
+          "attribution"
+        ]
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "ChEBI supplies curated identity, classification and role annotations, not spectra."
+        "note": "ChEBI supplies curated identity, classification and role annotations, not spectra.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -282,7 +298,11 @@
           "About and license",
           "https://www.ebi.ac.uk/chebi/about"
         ]
-      ]
+      ],
+      "value": "Curated chemical identities, names, classes, biological roles and cross-references.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "nmrshiftdb2",
@@ -356,13 +376,15 @@
         "label": null,
         "commercial_use": "unknown",
         "evidence_link": "https://nmrshiftdb.nmr.uni-koeln.de/License.txt",
-        "notes": "The map: the provider 'calls the database open content and links a specific data license. The license text did not render in this research, so its exact current version is unverified; do not carry forward the earlier blanket share-alike claim without checking.'"
+        "notes": "The map: the provider 'calls the database open content and links a specific data license. The license text did not render in this research, so its exact current version is unverified; do not carry forward the earlier blanket share-alike claim without checking.'",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": true,
         "assignments": "yes",
         "conditions": "partial",
-        "note": "Assigned 1H, 13C and other spectra with peak lists are the core content, but solvent and reference metadata must be audited per release rather than assumed."
+        "note": "Assigned 1H, 13C and other spectra with peak lists are the core content, but solvent and reference metadata must be audited per release rather than assumed.",
+        "provenance": "documented"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -381,7 +403,11 @@
           "Provider's data-license link (unreadable in this review)",
           "https://nmrshiftdb.nmr.uni-koeln.de/License.txt"
         ]
-      ]
+      ],
+      "value": "Assigned 1H, 13C and other NMR spectra; peak lists and some raw data.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "bmrb",
@@ -452,13 +478,15 @@
         "label": null,
         "commercial_use": "unknown",
         "evidence_link": "https://bmrb.io/metabolomics/data_policy.shtml",
-        "notes": "The map: the 'metabolomics policy says free access but does not itself specify a standard reuse license. Confirm scope of the applicable archive/data terms before assigning CC0 to this subset.'"
+        "notes": "The map: the 'metabolomics policy says free access but does not itself specify a standard reuse license. Confirm scope of the applicable archive/data terms before assigning CC0 to this subset.'",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": true,
         "assignments": "partial",
         "conditions": "partial",
-        "note": "Small-molecule NMR standards carry chemical shifts, experimental metadata and raw data, but the map requires assignments and referencing details to be verified per record."
+        "note": "Small-molecule NMR standards carry chemical shifts, experimental metadata and raw data, but the map requires assignments and referencing details to be verified per record.",
+        "provenance": "documented"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -477,7 +505,11 @@
           "Metabolomics policy",
           "https://bmrb.io/metabolomics/data_policy.shtml"
         ]
-      ]
+      ],
+      "value": "Small-molecule NMR standards, chemical shifts, experimental metadata and raw data.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "nmrxiv",
@@ -549,13 +581,15 @@
         "label": "per-project / per-sample licence declared by the depositor",
         "commercial_use": "unknown",
         "evidence_link": "https://docs.nmrxiv.org/FAQs.html",
-        "notes": "The map: 'Inspect each project/sample license; parent licenses propagate to spectra. Do not infer every record's rights from the website footer.'"
+        "notes": "The map: 'Inspect each project/sample license; parent licenses propagate to spectra. Do not infer every record's rights from the website footer.'",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": true,
         "assignments": "partial",
         "conditions": "yes",
-        "note": "Deposited raw and processed spectra come with acquisition metadata and documented solvent/temperature/nucleus filters, but raw data does not guarantee a fully assigned spectrum."
+        "note": "Deposited raw and processed spectra come with acquisition metadata and documented solvent/temperature/nucleus filters, but raw data does not guarantee a fully assigned spectrum.",
+        "provenance": "documented"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -574,7 +608,11 @@
           "Licensing FAQ",
           "https://docs.nmrxiv.org/FAQs.html"
         ]
-      ]
+      ],
+      "value": "Deposited NMR experiments, raw/processed spectra, sample metadata and downloadable archives.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "nmrbank",
@@ -630,13 +668,15 @@
         "label": "MIT advertised for the code; dataset terms not established",
         "commercial_use": "unknown",
         "evidence_link": "https://github.com/eat-sugar/NMRExtractor",
-        "notes": "The map: the 'repository advertises MIT for code, but dataset-specific terms and source-publication rights were not independently established here.' A code licence does not license the extracted data or the underlying publications."
+        "notes": "The map: the 'repository advertises MIT for code, but dataset-specific terms and source-publication rights were not independently established here.' A code licence does not license the extracted data or the underlying publications.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": true,
         "assignments": "partial",
         "conditions": "unknown",
-        "note": "Records are NMR data extracted from papers by a language model, with structures where resolved, so assignment quality varies and experimental conditions are not guaranteed."
+        "note": "Records are NMR data extracted from papers by a language model, with structures where resolved, so assignment quality varies and experimental conditions are not guaranteed.",
+        "provenance": "documented"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -651,7 +691,11 @@
           "Authors' data deposit",
           "https://huggingface.co/datasets/sweetssweets/NMRBank"
         ]
-      ]
+      ],
+      "value": "NMR records extracted from research literature using a language model, with structures where resolved and confidence information.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "chemotion",
@@ -726,13 +770,18 @@
         "label": "per-publication licences, including CC BY-SA 4.0, CC BY, CC0 and public-domain marks",
         "commercial_use": "unknown",
         "evidence_link": "https://chemotion.net/docs/repo/faq",
-        "notes": "The map records per-publication licences of several different kinds, so the licence must be read from each publication rather than assumed for the repository as a whole."
+        "notes": "The map records per-publication licences of several different kinds, so the licence must be read from each publication rather than assumed for the repository as a whole.",
+        "obligations": [
+          "attribution",
+          "share_alike_on_some_publications"
+        ]
       },
       "nmr_relevance": {
         "has_nmr": true,
         "assignments": "partial",
         "conditions": "partial",
-        "note": "Published experimental characterization with linked instrument files recovers real experiment context, but the map warns not to assume every spectrum carries atom assignments."
+        "note": "Published experimental characterization with linked instrument files recovers real experiment context, but the map warns not to assume every spectrum carries atom assignments.",
+        "provenance": "documented"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -751,7 +800,11 @@
           "FAQ and conditions",
           "https://chemotion.net/docs/repo/faq"
         ]
-      ]
+      ],
+      "value": "Published molecules, reactions, experimental characterization and linked instrument files.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "rruff",
@@ -818,13 +871,15 @@
         "label": null,
         "commercial_use": "unknown",
         "evidence_link": "https://rruff.info/about/about_general.php",
-        "notes": "The map: 'Free viewing/downloading exists, but a formal reuse license for the intended commercial use was not established in this review.' Free download is not a licence grant."
+        "notes": "The map: 'Free viewing/downloading exists, but a formal reuse license for the intended commercial use was not established in this review.' Free download is not a licence grant.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "RRUFF holds mineral Raman, infrared and diffraction data, with no NMR content."
+        "note": "RRUFF holds mineral Raman, infrared and diffraction data, with no NMR content.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -839,7 +894,11 @@
           "Current file directories",
           "https://www.rruff.net/zipped_data_files/"
         ]
-      ]
+      ],
+      "value": "Mineral Raman, infrared, diffraction and chemical-composition datasets.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": false
     },
     {
       "id": "ramanbase",
@@ -905,13 +964,18 @@
         "label": "database organization CC BY 4.0; record licences vary (including CC0 and non-commercial share-alike)",
         "commercial_use": "unknown",
         "evidence_link": "https://ramanbase.org/terms",
-        "notes": "The map: 'Database organization CC BY 4.0; record licenses can differ, including CC0 and non-commercial share-alike terms. Specific record terms override defaults.' Some records are therefore not commercially reusable."
+        "notes": "The map: 'Database organization CC BY 4.0; record licenses can differ, including CC0 and non-commercial share-alike terms. Specific record terms override defaults.' Some records are therefore not commercially reusable.",
+        "obligations": [
+          "share_alike_on_some_records",
+          "non_commercial_on_some_records"
+        ]
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Raman Base holds published Raman spectra only; it carries no NMR data."
+        "note": "Raman Base holds published Raman spectra only; it carries no NMR data.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -930,7 +994,11 @@
           "Record terms",
           "https://ramanbase.org/terms"
         ]
-      ]
+      ],
+      "value": "Published Raman spectra and metadata.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": false
     },
     {
       "id": "openspecy",
@@ -988,13 +1056,15 @@
         "label": null,
         "commercial_use": "unknown",
         "evidence_link": null,
-        "notes": "The map states 'Library-specific rights need review; do not copy the OpenSpecy software license onto all contributed spectra.' No licence text for the contributed spectra was retrieved, so reuse terms are not established."
+        "notes": "The map states 'Library-specific rights need review; do not copy the OpenSpecy software license onto all contributed spectra.' No licence text for the contributed spectra was retrieved, so reuse terms are not established.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Documented content is FTIR and Raman reference spectra for polymers, minerals and other material classes, not NMR shifts or NMR acquisition conditions."
+        "note": "Documented content is FTIR and Raman reference spectra for polymers, minerals and other material classes, not NMR shifts or NMR acquisition conditions.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -1009,7 +1079,11 @@
           "Official library deposit",
           "https://osf.io/x7dpz/"
         ]
-      ]
+      ],
+      "value": "FTIR/Raman reference collections including polymers, minerals and other material classes.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": false
     },
     {
       "id": "massbank",
@@ -1085,13 +1159,17 @@
         "label": "per-record LICENSE field",
         "commercial_use": "unknown",
         "evidence_link": "https://github.com/MassBank/MassBank-documentation/blob/dev/MassBankRecordFormat.md",
-        "notes": "The map says to 'Use each record's mandatory LICENSE field. Allowed terms vary, including CC0, CC BY, share-alike and non-commercial variants.' Commercial reuse therefore has to be decided record by record, not for the collection."
+        "notes": "The map says to 'Use each record's mandatory LICENSE field. Allowed terms vary, including CC0, CC BY, share-alike and non-commercial variants.' Commercial reuse therefore has to be decided record by record, not for the collection.",
+        "obligations": [
+          "per_record_licence_field"
+        ]
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Records carry mass spectra with instrument and acquisition metadata; the documented conditions are MS ionization/fragmentation parameters, not NMR solvent, temperature or reference."
+        "note": "Records carry mass spectra with instrument and acquisition metadata; the documented conditions are MS ionization/fragmentation parameters, not NMR solvent, temperature or reference.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -1110,7 +1188,14 @@
           "Record license specification",
           "https://github.com/MassBank/MassBank-documentation/blob/dev/MassBankRecordFormat.md"
         ]
-      ]
+      ],
+      "value": "Reference mass spectra, structures, peak lists, instrument and acquisition metadata.",
+      "overlaps_with": [
+        "mona",
+        "gnps"
+      ],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "mona",
@@ -1168,17 +1253,22 @@
         ]
       },
       "rights": {
-        "status": "open_unverified",
-        "label": "CC BY 4.0 (default content licence)",
+        "status": "per_record",
+        "label": "CC BY 4.0 default; constituent-library records may differ",
         "commercial_use": "unknown",
         "evidence_link": "https://mona.fiehnlab.ucdavis.edu/documentation/license",
-        "notes": "The map records a 'Default content license CC BY 4.0 with possible separately arranged exceptions' and instructs preserving constituent-library provenance, so individual records may not follow the default."
+        "notes": "The map records a 'Default content license CC BY 4.0 with possible separately arranged exceptions' and instructs preserving constituent-library provenance, so individual records may not follow the default.",
+        "obligations": [
+          "attribution",
+          "preserve_constituent_library_provenance"
+        ]
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Aggregated mass spectra only; the map documents no NMR shifts, assignments or NMR acquisition conditions here."
+        "note": "Aggregated mass spectra only; the map documents no NMR shifts, assignments or NMR acquisition conditions here.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -1193,7 +1283,17 @@
           "Content license",
           "https://mona.fiehnlab.ucdavis.edu/documentation/license"
         ]
-      ]
+      ],
+      "value": "Aggregated measured and in-silico mass spectra.",
+      "overlaps_with": [
+        "massbank",
+        "gnps"
+      ],
+      "republishes": [
+        "massbank",
+        "gnps"
+      ],
+      "engine_supported": "unknown"
     },
     {
       "id": "gnps",
@@ -1269,13 +1369,17 @@
         "label": "CC0 for direct reference contributions; imported libraries retain their own terms",
         "commercial_use": "unknown",
         "evidence_link": "https://ccms-ucsd.github.io/GNPSDocumentation/browselibraries/",
-        "notes": "The map states 'Direct reference contributions default to CC0; imported libraries retain their own terms.' Terms therefore have to be established per contributing library, not for GNPS as a whole."
+        "notes": "The map states 'Direct reference contributions default to CC0; imported libraries retain their own terms.' Terms therefore have to be established per contributing library, not for GNPS as a whole.",
+        "obligations": [
+          "preserve_imported_library_terms"
+        ]
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "MS/MS reference libraries and annotation metadata; documented conditions are precursor, adduct and collision parameters, not NMR conditions."
+        "note": "MS/MS reference libraries and annotation metadata; documented conditions are precursor, adduct and collision parameters, not NMR conditions.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -1294,7 +1398,16 @@
           "Library guidance and licenses",
           "https://ccms-ucsd.github.io/GNPSDocumentation/browselibraries/"
         ]
-      ]
+      ],
+      "value": "MS/MS reference libraries, spectra and annotation metadata.",
+      "overlaps_with": [
+        "massbank",
+        "mona"
+      ],
+      "republishes": [
+        "massbank"
+      ],
+      "engine_supported": "unknown"
     },
     {
       "id": "reactome",
@@ -1356,13 +1469,17 @@
         "label": "CC0 (database data and derived data files); CC BY 4.0 (artwork)",
         "commercial_use": "yes",
         "evidence_link": "https://reactome.org/license",
-        "notes": "The map records that 'Database data and derived data files are CC0; artwork is CC BY 4.0, and software has separate terms.' The licence page was read as documentation, not confirmed live from this environment, and the software terms do not travel with the data."
+        "notes": "The map records that 'Database data and derived data files are CC0; artwork is CC BY 4.0, and software has separate terms.' The licence page was read as documentation, not confirmed live from this environment, and the software terms do not travel with the data.",
+        "obligations": [
+          "attribution"
+        ]
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Pathway and reaction context for explaining targets; the map documents no spectra or NMR metadata here."
+        "note": "Pathway and reaction context for explaining targets; the map documents no spectra or NMR metadata here.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -1377,7 +1494,11 @@
           "License by content type",
           "https://reactome.org/license"
         ]
-      ]
+      ],
+      "value": "Curated biological pathways, reactions and protein relationships for explaining targets.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "chembl",
@@ -1449,15 +1570,20 @@
       "rights": {
         "status": "open_unverified",
         "label": "CC BY-SA 3.0",
-        "commercial_use": "yes",
+        "commercial_use": "yes_with_share_alike",
         "evidence_link": "https://chembl.gitbook.io/chembl-interface-documentation/about",
-        "notes": "The map records 'Database CC BY-SA 3.0; keep source attribution and assess share-alike obligations for redistributed data.' It also warns that ChEMBL share-alike terms do not automatically license NMRx's application code; the licence text was read as documentation, not confirmed live."
+        "notes": "The map records 'Database CC BY-SA 3.0; keep source attribution and assess share-alike obligations for redistributed data.' It also warns that ChEMBL share-alike terms do not automatically license NMRx's application code; the licence text was read as documentation, not confirmed live.",
+        "obligations": [
+          "attribution",
+          "share_alike"
+        ]
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Bioactivity, mechanism and ADMET-type data; the map documents no NMR spectra, shifts or acquisition conditions in ChEMBL."
+        "note": "Bioactivity, mechanism and ADMET-type data; the map documents no NMR spectra, shifts or acquisition conditions in ChEMBL.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -1476,7 +1602,13 @@
           "Licensing",
           "https://chembl.gitbook.io/chembl-interface-documentation/about"
         ]
-      ]
+      ],
+      "value": "Curated compound-target assays, bioactivity, drug mechanisms and some ADMET data.",
+      "overlaps_with": [
+        "bindingdb"
+      ],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "bindingdb",
@@ -1548,15 +1680,20 @@
       "rights": {
         "status": "per_record",
         "label": "CC BY 4.0 (BindingDB-curated records); CC BY-SA 3.0 (ChEMBL-derived records)",
-        "commercial_use": "yes",
+        "commercial_use": "yes_with_share_alike",
         "evidence_link": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11701568/",
-        "notes": "The map records 'BindingDB-curated records CC BY 4.0; ChEMBL-derived records retain CC BY-SA 3.0 according to the maintainers' database paper.' The evidence is the maintainers' paper rather than a site licence page, and the share-alike obligation follows the ChEMBL-derived subset, so record origin must be stored."
+        "notes": "The map records 'BindingDB-curated records CC BY 4.0; ChEMBL-derived records retain CC BY-SA 3.0 according to the maintainers' database paper.' The evidence is the maintainers' paper rather than a site licence page, and the share-alike obligation follows the ChEMBL-derived subset, so record origin must be stored.",
+        "obligations": [
+          "attribution",
+          "share_alike_on_chembl_derived_subset"
+        ]
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Measured protein-ligand affinity values; conditions documented are assay conditions, not NMR solvent, temperature or reference."
+        "note": "Measured protein-ligand affinity values; conditions documented are assay conditions, not NMR solvent, temperature or reference.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -1575,7 +1712,15 @@
           "Maintainers' paper and rights",
           "https://pmc.ncbi.nlm.nih.gov/articles/PMC11701568/"
         ]
-      ]
+      ],
+      "value": "Measured protein-ligand affinity from papers, patents and imported collections.",
+      "overlaps_with": [
+        "chembl"
+      ],
+      "republishes": [
+        "chembl"
+      ],
+      "engine_supported": "unknown"
     },
     {
       "id": "rcsb",
@@ -1653,13 +1798,15 @@
         "label": "CC0 (PDB archive and RCSB programmatic API data)",
         "commercial_use": "yes",
         "evidence_link": "https://www.rcsb.org/pages/usage-policy",
-        "notes": "The map records 'PDB archive and RCSB programmatic API data CC0. Website articles have separate rights.' The CC0 statement covers archive and API data only, and the policy page was read as documentation rather than confirmed live."
+        "notes": "The map records 'PDB archive and RCSB programmatic API data CC0. Website articles have separate rights.' The CC0 statement covers archive and API data only, and the policy page was read as documentation rather than confirmed live.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "The map documents macromolecular structures, bound ligands, experimental methods, validation and citations here, not NMR spectra, chemical shifts or shift assignments."
+        "note": "The map documents macromolecular structures, bound ligands, experimental methods, validation and citations here, not NMR spectra, chemical shifts or shift assignments.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -1678,7 +1825,13 @@
           "Usage policy",
           "https://www.rcsb.org/pages/usage-policy"
         ]
-      ]
+      ],
+      "value": "Macromolecular structures, bound ligands, experimental methods, validation and citations.",
+      "overlaps_with": [
+        "pdbe"
+      ],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "pdbe",
@@ -1751,13 +1904,15 @@
         "label": "CC0 (PDB archive)",
         "commercial_use": "yes",
         "evidence_link": "https://www.ebi.ac.uk/pdbe/about/public-data-access-statement",
-        "notes": "The map records 'PDB archive CC0; preserve provenance of additional annotations and consult PDBe's access statement.' The CC0 statement covers the shared archive; PDBe-KB's additional annotations are not established as carrying the same terms."
+        "notes": "The map records 'PDB archive CC0; preserve provenance of additional annotations and consult PDBe's access statement.' The CC0 statement covers the shared archive; PDBe-KB's additional annotations are not established as carrying the same terms.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Structure annotations, mappings, validation and molecular interactions; the map documents no NMR spectra or shift assignments in this entry."
+        "note": "Structure annotations, mappings, validation and molecular interactions; the map documents no NMR spectra or shift assignments in this entry.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -1776,7 +1931,13 @@
           "Archive policy",
           "https://www.wwpdb.org/about/usage-policies"
         ]
-      ]
+      ],
+      "value": "PDB structure annotations, mappings, validation and molecular interactions.",
+      "overlaps_with": [
+        "rcsb"
+      ],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "uniprot",
@@ -1844,13 +2005,17 @@
         "label": "CC BY 4.0",
         "commercial_use": "yes",
         "evidence_link": "https://www.uniprot.org/help/license/",
-        "notes": "The map records 'Copyrightable database parts CC BY 4.0.' The wording covers the copyrightable parts of the database; the licence page was read as documentation and not confirmed live from this environment."
+        "notes": "The map records 'Copyrightable database parts CC BY 4.0.' The wording covers the copyrightable parts of the database; the licence page was read as documentation and not confirmed live from this environment.",
+        "obligations": [
+          "attribution"
+        ]
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Protein sequences, organism, function, active sites and cross-references; the map documents no NMR spectra or shift data in UniProt."
+        "note": "Protein sequences, organism, function, active sites and cross-references; the map documents no NMR spectra or shift data in UniProt.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -1869,7 +2034,11 @@
           "License",
           "https://www.uniprot.org/help/license/"
         ]
-      ]
+      ],
+      "value": "Protein sequences, organism, function, active sites, evidence and cross-references.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "alphafold",
@@ -1938,13 +2107,17 @@
         "label": "CC BY 4.0 (predictions)",
         "commercial_use": "yes",
         "evidence_link": "https://www.alphafold.ebi.ac.uk/faq",
-        "notes": "The map records 'Predictions CC BY 4.0; separate AlphaFold software/services can have different terms.' The CC BY 4.0 statement covers the predicted structures only, and the FAQ was read as documentation rather than confirmed live from this environment."
+        "notes": "The map records 'Predictions CC BY 4.0; separate AlphaFold software/services can have different terms.' The CC BY 4.0 statement covers the predicted structures only, and the FAQ was read as documentation rather than confirmed live from this environment.",
+        "obligations": [
+          "attribution"
+        ]
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "The map documents predicted protein structures and per-residue/pairwise confidence measures here, not NMR spectra, chemical shifts or assignments."
+        "note": "The map documents predicted protein structures and per-residue/pairwise confidence measures here, not NMR spectra, chemical shifts or assignments.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -1963,7 +2136,11 @@
           "Downloads",
           "https://alphafold.ebi.ac.uk/download"
         ]
-      ]
+      ],
+      "value": "Predicted protein structures and confidence measures.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "drugcentral",
@@ -2035,15 +2212,20 @@
       "rights": {
         "status": "open_unverified",
         "label": "CC BY-SA 4.0",
-        "commercial_use": "yes",
+        "commercial_use": "yes_with_share_alike",
         "evidence_link": "https://drugcentral.org/privacy",
-        "notes": "The map records that the 'Official license page links CC BY-SA 4.0.' Share-alike obligations attach to redistributed derivatives, and the licence page was read as documentation rather than confirmed live from this environment."
+        "notes": "The map records that the 'Official license page links CC BY-SA 4.0.' Share-alike obligations attach to redistributed derivatives, and the licence page was read as documentation rather than confirmed live from this environment.",
+        "obligations": [
+          "attribution",
+          "share_alike"
+        ]
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Drug structures, approvals, mechanisms, targets and label/literature annotations; the map documents no NMR spectra or shift data in DrugCentral."
+        "note": "Drug structures, approvals, mechanisms, targets and label/literature annotations; the map documents no NMR spectra or shift data in DrugCentral.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -2062,7 +2244,11 @@
           "Rights",
           "https://drugcentral.org/privacy"
         ]
-      ]
+      ],
+      "value": "Drug structures, approvals, mechanisms, targets and drug-label/literature annotations.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "openfda",
@@ -2132,13 +2318,15 @@
         "label": "CC0 (default, unless otherwise stated)",
         "commercial_use": "yes",
         "evidence_link": "https://open.fda.gov/terms/",
-        "notes": "The map records 'Default CC0 unless otherwise stated, with possible third-party exceptions.' The default does not cover every dataset, so third-party exceptions must be checked per dataset; the terms page was read as documentation rather than confirmed live."
+        "notes": "The map records 'Default CC0 unless otherwise stated, with possible third-party exceptions.' The default does not cover every dataset, so third-party exceptions must be checked per dataset; the terms page was read as documentation rather than confirmed live.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "The map states plainly that 'this is not an NMR source'; it carries labels, adverse-event reports, approvals and recalls."
+        "note": "The map states plainly that 'this is not an NMR source'; it carries labels, adverse-event reports, approvals and recalls.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -2157,7 +2345,11 @@
           "Terms",
           "https://open.fda.gov/terms/"
         ]
-      ]
+      ],
+      "value": "Drug labels, adverse-event reports, approvals and recalls.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "dailymed",
@@ -2234,13 +2426,15 @@
         "label": null,
         "commercial_use": "unknown",
         "evidence_link": "https://www.nlm.nih.gov/web_policies.html#copyright",
-        "notes": "The map records that 'NLM distinguishes government works from contributed content. Do not assume all company-submitted label content has a blanket CC0 license.' No single reusable licence was established for the label corpus."
+        "notes": "The map records that 'NLM distinguishes government works from contributed content. Do not assume all company-submitted label content has a blanket CC0 license.' No single reusable licence was established for the label corpus.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Drug labelling text including clinical pharmacology and pharmacokinetic descriptions; the map documents no NMR spectra or shift data."
+        "note": "Drug labelling text including clinical pharmacology and pharmacokinetic descriptions; the map documents no NMR spectra or shift data.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -2263,7 +2457,11 @@
           "NLM content policy",
           "https://www.nlm.nih.gov/web_policies.html#copyright"
         ]
-      ]
+      ],
+      "value": "Drug labeling including clinical pharmacology, interactions and available pharmacokinetic descriptions.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "comptox",
@@ -2345,13 +2543,15 @@
         "label": "No copyright restrictions asserted by EPA (commercial and non-commercial use)",
         "commercial_use": "yes",
         "evidence_link": "https://www.epa.gov/comptox-tools/computational-toxicology-and-exposure-apis-data-domains",
-        "notes": "The map records that 'EPA states these data are free of copyright restrictions for commercial/noncommercial use; retain original data-source context and release.' The obligation to retain the original data source and release version travels with the record; the statement was read as documentation, not confirmed live."
+        "notes": "The map records that 'EPA states these data are free of copyright restrictions for commercial/noncommercial use; retain original data-source context and release.' The obligation to retain the original data source and release version travels with the record; the statement was read as documentation, not confirmed live.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Chemical identities, physical properties, assay, exposure and toxicokinetic data; the map documents no NMR spectra or shift data in the CTX APIs."
+        "note": "Chemical identities, physical properties, assay, exposure and toxicokinetic data; the map documents no NMR spectra or shift data in the CTX APIs.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -2374,7 +2574,11 @@
           "Downloads",
           "https://www.epa.gov/comptox-tools/downloadable-computational-toxicology-data"
         ]
-      ]
+      ],
+      "value": "Chemical identities, measured/modeled physical properties, ToxCast assays, exposure, toxicokinetics and hazard data.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "qcarchive",
@@ -2429,13 +2633,15 @@
         "label": null,
         "commercial_use": "unknown",
         "evidence_link": null,
-        "notes": "The map records 'No universal data license was verified for all hosted datasets. Check selected dataset terms, not only the server-software license.' No rights page was identified, so nothing here may be treated as a reuse grant."
+        "notes": "The map records 'No universal data license was verified for all hosted datasets. Check selected dataset terms, not only the server-software license.' No rights page was identified, so nothing here may be treated as a reuse grant.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": true,
         "assignments": "unknown",
         "conditions": "unknown",
-        "note": "The map says availability of an NMR property depends on the selected dataset, so any NMR-relevant quantity here is a computed result of a particular dataset rather than a measured spectrum, and no dataset has been established as carrying one."
+        "note": "The map says availability of an NMR property depends on the selected dataset, so any NMR-relevant quantity here is a computed result of a particular dataset rather than a measured spectrum, and no dataset has been established as carrying one.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -2450,7 +2656,11 @@
           "Architecture and data model",
           "https://docs.qcarchive.molssi.org/overview/"
         ]
-      ]
+      ],
+      "value": "Quantum calculations, geometries, energies, optimizations and dataset-specific properties.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "qm9",
@@ -2514,13 +2724,15 @@
         "label": "CC0 (author data deposit)",
         "commercial_use": "yes",
         "evidence_link": "https://springernature.figshare.com/articles/dataset/Data_for_6095_constitutional_isomers_of_C7H10O2/1057646",
-        "notes": "The map records 'Author data deposit CC0.' The statement applies to the deposit as read in documentation; it was not confirmed live, and the deposit's identity must be checked because its URL retains an older title."
+        "notes": "The map records 'Author data deposit CC0.' The statement applies to the deposit as read in documentation; it was not confirmed live, and the deposit's identity must be checked because its URL retains an older title.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Computed geometries, electronic/thermodynamic properties and calculated harmonic frequencies; the map documents no NMR shieldings or chemical shifts in QM9."
+        "note": "Computed geometries, electronic/thermodynamic properties and calculated harmonic frequencies; the map documents no NMR shieldings or chemical shifts in QM9.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -2535,7 +2747,11 @@
           "Author dataset deposit",
           "https://springernature.figshare.com/articles/dataset/Data_for_6095_constitutional_isomers_of_C7H10O2/1057646"
         ]
-      ]
+      ],
+      "value": "Computed geometries, electronic/thermodynamic properties and harmonic frequencies for small CHONF molecules.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "bounded"
     },
     {
       "id": "pubchemqc",
@@ -2602,13 +2818,17 @@
         "label": "CC BY 4.0 (PM6 and B3LYP//PM6 releases, per the authors)",
         "commercial_use": "yes",
         "evidence_link": "https://nakatamaho.riken.jp/pubchemqc.riken.jp/b3lyp_pm6_datasets.html",
-        "notes": "The map records 'Newer PM6 and B3LYP//PM6 datasets are CC BY 4.0 according to the authors; verify each chosen release.' Older releases are not covered by that statement and each chosen release must be checked individually."
+        "notes": "The map records 'Newer PM6 and B3LYP//PM6 datasets are CC BY 4.0 according to the authors; verify each chosen release.' Older releases are not covered by that statement and each chosen release must be checked individually.",
+        "obligations": [
+          "attribution"
+        ]
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Calculated geometries, orbital energies including HOMO/LUMO, dipoles and total energies; the map documents no NMR shieldings or chemical shifts."
+        "note": "Calculated geometries, orbital energies including HOMO/LUMO, dipoles and total energies; the map documents no NMR shieldings or chemical shifts.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -2627,7 +2847,11 @@
           "Authors' dataset paper",
           "https://arxiv.org/abs/2305.18454"
         ]
-      ]
+      ],
+      "value": "Calculated geometries, orbital energies including HOMO/LUMO, dipoles and total energies.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "ani",
@@ -2688,13 +2912,15 @@
         "label": "CC0 (author dataset deposit)",
         "commercial_use": "yes",
         "evidence_link": "https://springernature.figshare.com/articles/dataset/ANI-1x_Dataset_Release/10047041",
-        "notes": "The map records 'Deposit CC0.' That statement belongs to the dataset deposit and must not be inferred from, or confused with, the licence on the support code repository."
+        "notes": "The map records 'Deposit CC0.' That statement belongs to the dataset deposit and must not be inferred from, or confused with, the licence on the support code repository.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "The map states these are training data for molecular potentials and explicitly 'not measured NMR/IR'."
+        "note": "The map states these are training data for molecular potentials and explicitly 'not measured NMR/IR'.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -2709,7 +2935,11 @@
           "Official support repository",
           "https://github.com/aiqm/ANI1x_datasets"
         ]
-      ]
+      ],
+      "value": "Computed molecular energies, forces and training/benchmark configurations.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "bounded"
     },
     {
       "id": "iochembd",
@@ -2789,13 +3019,15 @@
         "label": null,
         "commercial_use": "unknown",
         "evidence_link": null,
-        "notes": "The map records 'Per-record/file rights must be checked. AGPL on API documentation describes software, not necessarily the hosted data.' No collection-wide data licence was established, and the software licence must not be read as a data grant."
+        "notes": "The map records 'Per-record/file rights must be checked. AGPL on API documentation describes software, not necessarily the hosted data.' No collection-wide data licence was established, and the software licence must not be read as a data grant.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Published computational-chemistry input/output files and their metadata; the map documents no NMR property, and anything NMR-relevant would be a per-deposit computed result rather than a measured spectrum."
+        "note": "Published computational-chemistry input/output files and their metadata; the map documents no NMR property, and anything NMR-relevant would be a per-deposit computed result rather than a measured spectrum.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -2810,7 +3042,11 @@
           "Institutional API",
           "https://docs.iochem-bd.org/api/browse.html"
         ]
-      ]
+      ],
+      "value": "Published computational-chemistry input/output files and metadata.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "ord",
@@ -2877,15 +3113,20 @@
       "rights": {
         "status": "open_unverified",
         "label": "CC BY-SA (version unconfirmed)",
-        "commercial_use": "yes",
+        "commercial_use": "yes_with_share_alike",
         "evidence_link": "https://docs.open-reaction-database.org/en/latest/overview.html",
-        "notes": "The map records 'Data CC BY-SA as stated by project overview; verify exact version in selected release. Software is separately licensed.' All CC BY-SA versions permit commercial reuse, but the share-alike obligation attaches to derived datasets and the exact version in the chosen release was not established here."
+        "notes": "The map records 'Data CC BY-SA as stated by project overview; verify exact version in selected release. Software is separately licensed.' All CC BY-SA versions permit commercial reuse, but the share-alike obligation attaches to derived datasets and the exact version in the chosen release was not established here.",
+        "obligations": [
+          "attribution",
+          "share_alike"
+        ]
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "The map states that standardized processed NMR atom assignments are outside ORD's stated core scope; its documented conditions are reaction conditions and workups, not NMR acquisition parameters."
+        "note": "The map states that standardized processed NMR atom assignments are outside ORD's stated core scope; its documented conditions are reaction conditions and workups, not NMR acquisition parameters.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -2904,7 +3145,11 @@
           "Data mirror",
           "https://huggingface.co/datasets/open-reaction-database/ord-data"
         ]
-      ]
+      ],
+      "value": "Structured organic reaction inputs, conditions, workups and outcomes.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "cod",
@@ -2961,17 +3206,19 @@
         ]
       },
       "rights": {
-        "status": "open_verified",
+        "status": "open_documented",
         "label": "CC0",
         "commercial_use": "yes",
         "evidence_link": "https://crystallography.net/cod/new.html",
-        "notes": "The map states plainly that 'COD data and database CC0.' This is what the official page says as recorded in the map; it was not re-checked live in this pass, and rights evidence is not itself proof that a given deposit was lawfully contributed."
+        "notes": "The map states plainly that 'COD data and database CC0.' This is what the official page says as recorded in the map; it was not re-checked live in this pass, and rights evidence is not itself proof that a given deposit was lawfully contributed.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "COD holds diffraction-derived crystal structures and crystallographic metadata, with no NMR shifts, assignments or NMR acquisition conditions."
+        "note": "COD holds diffraction-derived crystal structures and crystallographic metadata, with no NMR shifts, assignments or NMR acquisition conditions.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -2986,7 +3233,11 @@
           "CC0 statement",
           "https://crystallography.net/cod/new.html"
         ]
-      ]
+      ],
+      "value": "Organic, inorganic and other crystal structures with crystallographic metadata.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": false
     },
     {
       "id": "materialsproject",
@@ -3058,13 +3309,17 @@
         "label": "CC BY 4.0 for core data; contributed data per contribution",
         "commercial_use": "unknown",
         "evidence_link": null,
-        "notes": "The map records 'Core data CC BY 4.0; contributed data require their own rights review.' Core CC BY 4.0 would permit commercial reuse with attribution, but whether a selected record is core or contributed determines its terms, and the map carries no dedicated link for the rights statement."
+        "notes": "The map records 'Core data CC BY 4.0; contributed data require their own rights review.' Core CC BY 4.0 would permit commercial reuse with attribution, but whether a selected record is core or contributed determines its terms, and the map carries no dedicated link for the rights statement.",
+        "obligations": [
+          "attribution"
+        ]
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Documented molecular endpoints cover orbitals, redox, thermochemistry and vibrations; the vibrational output is calculated IR-type data, not NMR shifts or NMR acquisition conditions."
+        "note": "Documented molecular endpoints cover orbitals, redox, thermochemistry and vibrations; the vibrational output is calculated IR-type data, not NMR shifts or NMR acquisition conditions.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -3083,7 +3338,11 @@
           "Official data product",
           "https://doi.org/10.17188/1693272"
         ]
-      ]
+      ],
+      "value": "Computed materials properties and documented molecular endpoints for orbitals, redox, thermochemistry and vibrations.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": false
     },
     {
       "id": "nomad",
@@ -3157,13 +3416,17 @@
         "label": "CC BY 4.0 (published central-service data)",
         "commercial_use": "yes",
         "evidence_link": "https://nomad-lab.eu/prod/v1/docs/tutorial/upload_publish_api.html",
-        "notes": "The map records 'Published central-service data CC BY 4.0 according to publishing documentation; verify selected entry's release/publication status.' CC BY 4.0 permits commercial reuse with attribution, but that only covers entries confirmed to be published, and the statement was not re-checked live."
+        "notes": "The map records 'Published central-service data CC BY 4.0 according to publishing documentation; verify selected entry's release/publication status.' CC BY 4.0 permits commercial reuse with attribution, but that only covers entries confirmed to be published, and the statement was not re-checked live.",
+        "obligations": [
+          "attribution"
+        ]
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Documented content is computational and experimental materials uploads with normalized materials metadata; no NMR shift records, atom assignments or NMR acquisition conditions are documented in the map."
+        "note": "Documented content is computational and experimental materials uploads with normalized materials metadata; no NMR shift records, atom assignments or NMR acquisition conditions are documented in the map.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -3178,7 +3441,11 @@
           "Publishing and license",
           "https://nomad-lab.eu/prod/v1/docs/tutorial/upload_publish_api.html"
         ]
-      ]
+      ],
+      "value": "Computational and experimental materials uploads, raw files and normalized entries.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": false
     },
     {
       "id": "nfdi4chem",
@@ -3232,13 +3499,15 @@
         "label": "per-source licence of the indexed dataset",
         "commercial_use": "unknown",
         "evidence_link": "https://search.nfdi4chem.de/about",
-        "notes": "The map states 'Underlying datasets retain their own licenses; indexed metadata is not permission to copy every linked file.' Reuse terms therefore have to be resolved at the original repository, one dataset at a time."
+        "notes": "The map states 'Underlying datasets retain their own licenses; indexed metadata is not permission to copy every linked file.' Reuse terms therefore have to be resolved at the original repository, one dataset at a time.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "The service carries index metadata pointing at NMR-bearing repositories such as nmrXiv and Chemotion; it holds no shifts, assignments or acquisition conditions of its own."
+        "note": "The service carries index metadata pointing at NMR-bearing repositories such as nmrXiv and Chemotion; it holds no shifts, assignments or acquisition conditions of its own.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -3253,7 +3522,19 @@
           "Search portal",
           "https://search.nfdi4chem.de/"
         ]
-      ]
+      ],
+      "value": "Searches chemistry datasets across Chemotion, MassBank, nmrXiv, RADAR4Chem and chemistry records in DaRUS.",
+      "overlaps_with": [
+        "chemotion",
+        "massbank",
+        "nmrxiv"
+      ],
+      "republishes": [
+        "chemotion",
+        "massbank",
+        "nmrxiv"
+      ],
+      "engine_supported": "unknown"
     },
     {
       "id": "fairsharing",
@@ -3308,13 +3589,15 @@
         "label": null,
         "commercial_use": "unknown",
         "evidence_link": null,
-        "notes": "The map states 'Registry descriptions and linked datasets have separate rights; inspect each provider' and that 'API access and registry reuse terms need a separate check if automated ingestion is planned.' No licence for the registry descriptions was established here."
+        "notes": "The map states 'Registry descriptions and linked datasets have separate rights; inspect each provider' and that 'API access and registry reuse terms need a separate check if automated ingestion is planned.' No licence for the registry descriptions was established here.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "A directory of databases, standards and policies; it carries descriptions of resources rather than any spectra, assignments or acquisition conditions."
+        "note": "A directory of databases, standards and policies; it carries descriptions of resources rather than any spectra, assignments or acquisition conditions.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -3329,7 +3612,11 @@
           "Ongoing chemical database discovery",
           "https://blog.fairsharing.org/?p=993"
         ]
-      ]
+      ],
+      "value": "Directory of databases, standards and policies, including a curated NFDI4Chem collection.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "re3data",
@@ -3385,17 +3672,19 @@
         ]
       },
       "rights": {
-        "status": "open_verified",
+        "status": "open_documented",
         "label": "CC0 (registry records only)",
         "commercial_use": "yes",
         "evidence_link": "https://datacite.org/blog/happy-10th-anniversary-re3data/",
-        "notes": "The map states 'Registry records are CC0; this does not license the research data held by listed repositories.' The CC0 waiver covers the registry descriptions alone, and each listed repository's own data carry their own terms."
+        "notes": "The map states 'Registry records are CC0; this does not license the research data held by listed repositories.' The CC0 waiver covers the registry descriptions alone, and each listed repository's own data carry their own terms.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "A registry of repositories with access, format and licensing metadata; it holds no molecular or spectral records at all."
+        "note": "A registry of repositories with access, format and licensing metadata; it holds no molecular or spectral records at all.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -3410,7 +3699,11 @@
           "Registry reuse statement",
           "https://datacite.org/blog/happy-10th-anniversary-re3data/"
         ]
-      ]
+      ],
+      "value": "Registry of research data repositories with access, format and licensing metadata.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "datacite",
@@ -3465,17 +3758,19 @@
         ]
       },
       "rights": {
-        "status": "open_verified",
+        "status": "open_documented",
         "label": "CC0 (metadata only)",
         "commercial_use": "yes",
         "evidence_link": "https://support.datacite.org/docs/datacite-data-file-use-policy",
-        "notes": "The map states 'Metadata is CC0; linked datasets and papers are explicitly outside that blanket waiver.' Commercial reuse applies to the DOI metadata alone; every linked dataset or paper needs its own rights check."
+        "notes": "The map states 'Metadata is CC0; linked datasets and papers are explicitly outside that blanket waiver.' Commercial reuse applies to the DOI metadata alone; every linked dataset or paper needs its own rights check.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Holds DOI metadata, creators, related papers, repository links and declared rights; it carries no spectra, assignments or acquisition conditions."
+        "note": "Holds DOI metadata, creators, related papers, repository links and declared rights; it carries no spectra, assignments or acquisition conditions.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -3494,7 +3789,11 @@
           "Rights scope",
           "https://support.datacite.org/docs/datacite-data-file-use-policy"
         ]
-      ]
+      ],
+      "value": "Dataset DOI metadata, creators, related papers, repository links and declared rights.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "crossref",
@@ -3549,13 +3848,15 @@
         "label": "metadata broadly reusable; abstracts and linked content per publisher",
         "commercial_use": "unknown",
         "evidence_link": "https://www.crossref.org/documentation/retrieve-metadata/rest-api/",
-        "notes": "The map states 'Almost all metadata may be reused; abstracts can retain publisher/author copyright. Linked full texts and supplements require their own rights checks.' No single blanket licence was established, so abstracts and linked content have to be judged item by item."
+        "notes": "The map states 'Almost all metadata may be reused; abstracts can retain publisher/author copyright. Linked full texts and supplements require their own rights checks.' No single blanket licence was established, so abstracts and linked content have to be judged item by item.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Carries publication DOI metadata, references, licences and update/retraction notices, not experimental spectra or acquisition conditions."
+        "note": "Carries publication DOI metadata, references, licences and update/retraction notices, not experimental spectra or acquisition conditions.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -3570,7 +3871,11 @@
           "Authentication",
           "https://www.crossref.org/documentation/retrieve-metadata/rest-api/access-and-authentication/"
         ]
-      ]
+      ],
+      "value": "Publication DOI metadata, references, licenses, updates/retractions and links to publisher content.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "europepmc",
@@ -3635,13 +3940,15 @@
         "label": "per-publication licence",
         "commercial_use": "unknown",
         "evidence_link": null,
-        "notes": "The map states 'Publication-specific licenses; open access to metadata does not authorize unrestricted republication of all full text.' Each article's own licence governs reuse, and the map carries no single rights link for the service."
+        "notes": "The map states 'Publication-specific licenses; open access to metadata does not authorize unrestricted republication of all full text.' Each article's own licence governs reuse, and the map carries no single rights link for the service.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "unknown",
         "conditions": "unknown",
-        "note": "No structured NMR records; shifts, assignments and acquisition conditions may appear inside article text or supplementary tables, and anything extracted must be checked against the original record."
+        "note": "No structured NMR records; shifts, assignments and acquisition conditions may appear inside article text or supplementary tables, and anything extracted must be checked against the original record.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -3656,7 +3963,11 @@
           "Dataset linking support",
           "https://www.ebi.ac.uk/about/news/updates-from-data-resources/one-search-all-data/"
         ]
-      ]
+      ],
+      "value": "Life-science publications, references, dataset links and permitted open-access full text.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "pmc_oa",
@@ -3702,13 +4013,15 @@
         "label": "per-article licence; varies across the subset",
         "commercial_use": "unknown",
         "evidence_link": "https://pmc.ncbi.nlm.nih.gov/tools/openftlist/",
-        "notes": "Map: 'Licenses vary by article; not all articles in PMC are available for text mining/reuse.' Freely readable does not imply commercially reusable, so each article's licence must be resolved individually."
+        "notes": "Map: 'Licenses vary by article; not all articles in PMC are available for text mining/reuse.' Freely readable does not imply commercially reusable, so each article's licence must be resolved individually.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "A full-text literature corpus, not a spectral database; any NMR values would be literature-extracted from article text or supplements rather than delivered as structured spectra."
+        "note": "A full-text literature corpus, not a spectral database; any NMR values would be literature-extracted from article text or supplements rather than delivered as structured spectra.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -3719,7 +4032,11 @@
           "Access channels and licenses",
           "https://pmc.ncbi.nlm.nih.gov/tools/openftlist/"
         ]
-      ]
+      ],
+      "value": "Reusable subsets of full-text biomedical papers and associated data.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "zenodo",
@@ -3783,13 +4100,15 @@
         "label": "metadata CC0; per-deposit declared licence",
         "commercial_use": "unknown",
         "evidence_link": "https://developers.zenodo.org/",
-        "notes": "Map: 'Metadata CC0; each deposited dataset/file has its own declared license and access status.' The CC0 metadata licence says nothing about the reusability of the deposited files themselves."
+        "notes": "Map: 'Metadata CC0; each deposited dataset/file has its own declared license and access status.' The CC0 metadata licence says nothing about the reusability of the deposited files themselves.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": true,
         "assignments": "unknown",
         "conditions": "unknown",
-        "note": "Some deposits carry chemistry spectra including NMR, but as a general repository it has no single chemical schema, so identity, assignment and condition metadata must be resolved deposit by deposit."
+        "note": "Some deposits carry chemistry spectra including NMR, but as a general repository it has no single chemical schema, so identity, assignment and condition metadata must be resolved deposit by deposit.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -3800,7 +4119,11 @@
           "API and metadata fields",
           "https://developers.zenodo.org/"
         ]
-      ]
+      ],
+      "value": "Paper-associated chemistry data, spectra, computational benchmarks and supplementary files.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "sabiork",
@@ -3863,13 +4186,15 @@
         "label": "non-commercial internal research/academic use; commercial use by negotiated licence",
         "commercial_use": "negotiate",
         "evidence_link": "https://sabiork.h-its.org/layouts/content/termscondition.gsp",
-        "notes": "Map: 'Official terms grant non-commercial internal research/academic use; commercial use requires a negotiated license.' No licence has been negotiated, so this source stays behind commercial permission."
+        "notes": "Map: 'Official terms grant non-commercial internal research/academic use; commercial use requires a negotiated license.' No licence has been negotiated, so this source stays behind commercial permission.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Enzyme and reaction kinetics with their own experimental conditions; it carries no NMR spectra or chemical-shift assignments."
+        "note": "Enzyme and reaction kinetics with their own experimental conditions; it carries no NMR spectra or chemical-shift assignments.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -3884,7 +4209,11 @@
           "Terms",
           "https://sabiork.h-its.org/layouts/content/termscondition.gsp"
         ]
-      ]
+      ],
+      "value": "Biochemical reaction kinetics and rate laws with experimental conditions.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "cas_common",
@@ -3929,13 +4258,17 @@
         "label": "CC BY-NC 4.0",
         "commercial_use": "no",
         "evidence_link": "https://commonchemistry.cas.org/detail?cas_rn=371771-07-2",
-        "notes": "Map: 'Public records state CC BY-NC 4.0. Do not treat them as freely licensed for a commercial NMRx product.' The non-commercial clause blocks use in a commercial product absent separate terms from CAS."
+        "notes": "Map: 'Public records state CC BY-NC 4.0. Do not treat them as freely licensed for a commercial NMRx product.' The non-commercial clause blocks use in a commercial product absent separate terms from CAS.",
+        "obligations": [
+          "attribution"
+        ]
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "An identifier and structure lookup source (CAS RNs, names, structures) with no spectral content."
+        "note": "An identifier and structure lookup source (CAS RNs, names, structures) with no spectral content.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -3946,7 +4279,11 @@
           "Example official record and license",
           "https://commonchemistry.cas.org/detail?cas_rn=371771-07-2"
         ]
-      ]
+      ],
+      "value": "CAS Registry Numbers, names and chemical structures for a public subset of CAS content.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "nist",
@@ -4015,13 +4352,15 @@
         "label": "Standard Reference Data compilation copyright; collection-specific terms not established",
         "commercial_use": "unknown",
         "evidence_link": "https://www.nist.gov/open/copyright-fair-use-and-licensing-statements-srd-data-software-and-technical-series-publications",
-        "notes": "Map: 'Standard Reference Data compilation copyright applies; confirm terms for the exact collection and intended reuse. The review does not establish that every commercial use requires the same paid license.' Terms for the specific collection were not retrieved, so the licence stays unconfirmed in both directions."
+        "notes": "Map: 'Standard Reference Data compilation copyright applies; confirm terms for the exact collection and intended reuse. The review does not establish that every commercial use requires the same paid license.' Terms for the specific collection were not retrieved, so the licence stays unconfirmed in both directions.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "partial",
-        "note": "Holds IR, MS and UV/Vis rather than NMR, though its records do carry phase, temperature and spectrum conditions that matter if any of its spectra are ingested."
+        "note": "Holds IR, MS and UV/Vis rather than NMR, though its records do carry phase, temperature and spectrum conditions that matter if any of its spectra are ingested.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -4040,7 +4379,11 @@
           "NIST rights framework",
           "https://www.nist.gov/open/copyright-fair-use-and-licensing-statements-srd-data-software-and-technical-series-publications"
         ]
-      ]
+      ],
+      "value": "IR, MS, UV/Vis, thermochemistry, ion energetics and other physical data.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "sdbs",
@@ -4077,7 +4420,7 @@
       "access": {
         "method": "manual",
         "auth": "none",
-        "documented_rate_limit": "Disclaimer prohibits automated robot collection and large downloads; manual lookup only.",
+        "documented_rate_limit": null,
         "routes": [
           {
             "purpose": "Disclaimer stating the no-robot collection and no-large-download policy",
@@ -4089,20 +4432,23 @@
             "url": "https://sdbs.db.aist.go.jp/Htmls/faq_eng.html",
             "provenance": "documented"
           }
-        ]
+        ],
+        "prohibitions": "Disclaimer prohibits automated robot collection and large downloads; manual lookup only."
       },
       "rights": {
         "status": "non_commercial",
         "label": "commercial/profit use requires contacting the operator; permission not obtained",
         "commercial_use": "negotiate",
         "evidence_link": "https://sdbs.db.aist.go.jp/Htmls/faq_eng.html",
-        "notes": "Map: 'Commercial/profit use requires contacting the operator according to the FAQ; permission has not been obtained.' No approach has been made to AIST, so nothing here is cleared for reuse."
+        "notes": "Map: 'Commercial/profit use requires contacting the operator according to the FAQ; permission has not been obtained.' No approach has been made to AIST, so nothing here is cleared for reuse.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": true,
         "assignments": "unknown",
         "conditions": "unknown",
-        "note": "Holds experimental organic NMR alongside IR, Raman and MS, but the map warns its public spectra are images rather than licensed digital peak tables, so assignment and condition availability is unestablished."
+        "note": "Holds experimental organic NMR alongside IR, Raman and MS, but the map warns its public spectra are images rather than licensed digital peak tables, so assignment and condition availability is unestablished.",
+        "provenance": "documented"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -4117,7 +4463,11 @@
           "FAQ on reuse and data formats",
           "https://sdbs.db.aist.go.jp/Htmls/faq_eng.html"
         ]
-      ]
+      ],
+      "value": "Experimental NMR, IR, Raman, MS and other spectra for organic compounds.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "spectrabase",
@@ -4179,13 +4529,15 @@
         "label": "annotation export offered non-commercial / no-derivatives; EULA restricts redistribution, service provision and ML use",
         "commercial_use": "negotiate",
         "evidence_link": "https://spectrabase.com/text_eula",
-        "notes": "Map: 'Annotation export is offered with non-commercial/no-derivatives restrictions; EULA restricts redistribution/service provision and ML uses. Exact licensed rights must be confirmed.' Commercial numerical-library integration would have to be negotiated with Wiley."
+        "notes": "Map: 'Annotation export is offered with non-commercial/no-derivatives restrictions; EULA restricts redistribution/service provision and ML uses. Exact licensed rights must be confirmed.' Commercial numerical-library integration would have to be negotiated with Wiley.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": true,
         "assignments": "unknown",
         "conditions": "unknown",
-        "note": "Carries reference NMR alongside IR, Raman, UV/Vis and MS, but the free surface exposes annotation links and thumbnails rather than reusable numerical spectra, so assignment and condition depth is unestablished."
+        "note": "Carries reference NMR alongside IR, Raman, UV/Vis and MS, but the free surface exposes annotation links and thumbnails rather than reusable numerical spectra, so assignment and condition depth is unestablished.",
+        "provenance": "documented"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -4200,7 +4552,11 @@
           "EULA",
           "https://spectrabase.com/text_eula"
         ]
-      ]
+      ],
+      "value": "NMR, IR, Raman, UV/Vis and MS search and reference spectra.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "gtopdb",
@@ -4272,13 +4628,19 @@
         "label": "database ODbL; contents CC BY-SA 4.0; provider-described commercial access fees",
         "commercial_use": "negotiate",
         "evidence_link": "https://www.guidetopharmacology.org/download.jsp",
-        "notes": "Map: 'Database ODbL and contents CC BY-SA 4.0; commercial access fees are described by the provider. Review current access agreement.' The open-style content licences do not settle the access side: registration, keys and commercial fees are a separate agreement."
+        "notes": "Map: 'Database ODbL and contents CC BY-SA 4.0; commercial access fees are described by the provider. Review current access agreement.' The open-style content licences do not settle the access side: registration, keys and commercial fees are a separate agreement.",
+        "obligations": [
+          "attribution",
+          "share_alike",
+          "database_share_alike_odbl"
+        ]
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Expert-curated pharmacology (targets, ligands, mechanisms, interactions) with no spectral content."
+        "note": "Expert-curated pharmacology (targets, ligands, mechanisms, interactions) with no spectral content.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -4297,7 +4659,11 @@
           "Current access announcement",
           "https://blog.guidetopharmacology.org/"
         ]
-      ]
+      ],
+      "value": "Expert-curated targets, ligands, mechanisms and pharmacological interactions.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "drugbank",
@@ -4370,13 +4736,15 @@
         "label": "commercial licence required; academic offerings restricted",
         "commercial_use": "negotiate",
         "evidence_link": "https://trust.drugbank.com/drugbank-trust-center/drugbank-terms-of-service",
-        "notes": "Map: 'Commercial use requires commercial terms. Academic offerings have restrictions; the current latest-release page reports academic downloads temporarily paused.' No agreement is in place, so this stays a later licensed option."
+        "notes": "Map: 'Commercial use requires commercial terms. Academic offerings have restrictions; the current latest-release page reports academic downloads temporarily paused.' No agreement is in place, so this stays a later licensed option.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Drug chemistry, pharmacology, interaction and target knowledge; it is not a spectral source."
+        "note": "Drug chemistry, pharmacology, interaction and target knowledge; it is not a spectral source.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -4399,7 +4767,11 @@
           "Terms",
           "https://trust.drugbank.com/drugbank-trust-center/drugbank-terms-of-service"
         ]
-      ]
+      ],
+      "value": "Detailed drug chemistry, pharmacology, interactions and target knowledge.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": "unknown"
     },
     {
       "id": "csd",
@@ -4461,13 +4833,15 @@
         "label": "CSD Portfolio/API access under agreement; free deposited-structure viewing only",
         "commercial_use": "negotiate",
         "evidence_link": "https://downloads.ccdc.cam.ac.uk/documentation/API/conditions_of_use.html",
-        "notes": "Map: 'Full CSD use and redistribution depend on an applicable agreement; free viewing does not grant a blanket database-mirroring right.' Free deposited-structure lookup is a separate tier from licensed full-database access."
+        "notes": "Map: 'Full CSD use and redistribution depend on an applicable agreement; free viewing does not grant a blanket database-mirroring right.' Free deposited-structure lookup is a separate tier from licensed full-database access.",
+        "obligations": []
       },
       "nmr_relevance": {
         "has_nmr": false,
         "assignments": "no",
         "conditions": "no",
-        "note": "Crystal geometry and structural evidence only; the map explicitly notes it is not a source of experimental solution NMR."
+        "note": "Crystal geometry and structural evidence only; the map explicitly notes it is not a source of experimental solution NMR.",
+        "provenance": "inferred"
       },
       "status": "documented_only",
       "automated_ingestion_approved": false,
@@ -4486,7 +4860,15 @@
           "Conditions of use",
           "https://downloads.ccdc.cam.ac.uk/documentation/API/conditions_of_use.html"
         ]
-      ]
+      ],
+      "value": "Curated organic and organometallic crystal structures; Access Structures exposes deposited structure records.",
+      "overlaps_with": [],
+      "republishes": [],
+      "engine_supported": false
     }
-  ]
+  ],
+  "scope": "Candidate databases, datasets and discovery services; not exhaustive.",
+  "verification": "Official documentation/author deposits reviewed; no live connector tests from Claude's environment.",
+  "research_date_utc": "2026-09-16",
+  "_tier_rule": "nmrx_tier is a CONNECTION tier and can differ from map_priority, which is preserved verbatim. unichem and chebi read map_priority 'Next connections' but tier 'pilot' because they are served by www.ebi.ac.uk, which is already a granted pilot host, so connecting them costs no new permission. uniprot and comptox share that map_priority but need a new host or an API key, so they stay 'next_connection'."
 }

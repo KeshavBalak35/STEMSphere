@@ -75,10 +75,15 @@ class TestScoringIsConservative(unittest.TestCase):
         from nmrx.reports.ranking import VERDICT_SCORE
         self.assertLess(VERDICT_SCORE["unknown"], VERDICT_SCORE["partial"])
 
-    def test_an_unestablished_licence_scores_below_a_verified_one(self):
+    def test_an_unestablished_licence_scores_below_a_documented_one(self):
         from nmrx.reports.ranking import RIGHTS_SCORE
-        self.assertLess(RIGHTS_SCORE["unverified"], RIGHTS_SCORE["open_verified"])
+        self.assertLess(RIGHTS_SCORE["unverified"], RIGHTS_SCORE["open_documented"])
         self.assertEqual(RIGHTS_SCORE["licensed_required"], 0.0)
+
+    def test_there_is_no_verified_rights_score(self):
+        """Nothing has been verified against a live service, so the word must not appear."""
+        from nmrx.reports.ranking import RIGHTS_SCORE
+        self.assertNotIn("open_verified", RIGHTS_SCORE)
 
 
 if __name__ == "__main__":

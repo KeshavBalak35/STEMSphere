@@ -22,7 +22,7 @@ from ..sources.registry import Source, SourceRegistry, load_registry
 VERDICT_SCORE = {"yes": 1.0, "partial": 0.5, "unknown": 0.15, "no": 0.0, "unassessed": 0.1}
 
 RIGHTS_SCORE = {
-    "open_verified": 1.0,
+    "open_documented": 1.0,
     "per_record": 0.6,       # workable, but must be read per record
     "open_unverified": 0.4,
     "unverified": 0.2,

@@ -35,7 +35,10 @@ TIER_VALUES = (
 )
 
 RIGHTS_STATUS_VALUES = (
-    "open_verified",
+    # NOTE: there is deliberately no "open_verified". Nothing here has been verified against
+    # a live service, and the research material says so itself. "open_documented" records that
+    # provider documentation states an open licence -- which is evidence, not proof.
+    "open_documented",
     "open_unverified",
     "per_record",
     "non_commercial",
@@ -101,7 +104,41 @@ class Source:
 
     @property
     def harvest_policy(self) -> str:
+        """The raw provider-side policy field. It says nothing about rights."""
         return self.raw["harvest_policy"]
+
+    @property
+    def obligations(self) -> List[str]:
+        """Machine-readable licence obligations, e.g. attribution, share_alike."""
+        return list(self.raw.get("rights", {}).get("obligations", []) or [])
+
+    @property
+    def has_share_alike(self) -> bool:
+        return any("share_alike" in o for o in self.obligations)
+
+    @property
+    def overlaps_with(self) -> List[str]:
+        """Sources documented as serving some of the same underlying records."""
+        return list(self.raw.get("overlaps_with", []) or [])
+
+    @property
+    def republishes(self) -> List[str]:
+        """Sources this one is documented as re-serving. Its copies are not corroboration."""
+        return list(self.raw.get("republishes", []) or [])
+
+    @property
+    def engine_supported(self):
+        """Whether NMRx's quantum engine actually covers this source's chemistry.
+
+        Searchability in a database does not imply the calculation is supported -- the map is
+        explicit that extra databases do not extend the engine's validated domain.
+        """
+        return self.raw.get("engine_supported", "unknown")
+
+    @property
+    def rights_established(self) -> bool:
+        """True only when documentation actually names a licence for this source."""
+        return self.rights_status in ("open_documented", "per_record")
 
     @property
     def has_nmr(self) -> bool:
@@ -202,9 +239,27 @@ class SourceRegistry:
         """Sources that carry NMR *and* claim measured evidence -- the NMRx priority set."""
         return [s for s in self.nmr_sources() if "measured" in s.evidence_types]
 
-    def harvestable(self) -> List[Source]:
-        """Sources whose harvest policy permits automation once the network is open."""
+    def harvest_policy_allows(self) -> List[Source]:
+        """Sources with no provider-side prohibition or licence gate.
+
+        This is the raw field only. It says nothing about whether the rights are established,
+        so it is NOT the set that may actually be harvested -- see :meth:`harvestable`.
+        """
         return [s for s in self._sources if s.harvest_policy == "allowed_when_unblocked"]
+
+    def harvestable(self) -> List[Source]:
+        """Sources that may actually be harvested once the network opens.
+
+        Deliberately stricter than the ``harvest_policy`` field alone. A source whose licence
+        nobody has read is not harvestable just because no provider forbade it: its records
+        would fail the calibration gate at CAL-008, and redistributing them would rest on an
+        assumption rather than a licence.
+        """
+        return [s for s in self.harvest_policy_allows() if s.rights_established]
+
+    def rights_unestablished(self) -> List[Source]:
+        """Sources whose licence documentation did not settle the question."""
+        return [s for s in self._sources if not s.rights_established]
 
     def all_hosts(self, role: Optional[str] = None) -> List[str]:
         seen: List[str] = []
@@ -241,7 +296,8 @@ class SourceRegistry:
             rights = e.get("rights", {})
             if rights.get("status") not in RIGHTS_STATUS_VALUES:
                 problems.append(f"{where}: rights.status {rights.get('status')!r} invalid")
-            if rights.get("commercial_use") not in ("yes", "no", "unknown", "negotiate"):
+            if rights.get("commercial_use") not in ("yes", "yes_with_share_alike", "no",
+                                                    "unknown", "negotiate"):
                 problems.append(f"{where}: rights.commercial_use {rights.get('commercial_use')!r} invalid")
             nmr = e.get("nmr_relevance", {})
             for k in ("assignments", "conditions"):
@@ -254,6 +310,13 @@ class SourceRegistry:
                 for role in hosts:
                     if role not in ("api", "web", "files", "docs"):
                         problems.append(f"{where}: unknown host role {role!r}")
+            for sid in list(e.get("overlaps_with", [])) + list(e.get("republishes", [])):
+                if sid not in self._by_id:
+                    problems.append(f"{where}: references unknown source id {sid!r}")
+            if e.get("engine_supported") not in (True, False, "bounded", "unknown"):
+                problems.append(f"{where}: engine_supported {e.get('engine_supported')!r} invalid")
+            if not isinstance(rights.get("obligations", []), list):
+                problems.append(f"{where}: rights.obligations must be a list")
             for route in e.get("access", {}).get("routes", []) or []:
                 if route.get("provenance") not in ("documented", "inferred"):
                     problems.append(
@@ -271,6 +334,10 @@ class SourceRegistry:
             "by_status": dict(Counter(s.status for s in self._sources)),
             "by_rights_status": dict(Counter(s.rights_status for s in self._sources)),
             "by_harvest_policy": dict(Counter(s.harvest_policy for s in self._sources)),
+            "harvest_policy_allows": len(self.harvest_policy_allows()),
+            "harvestable_with_rights": len(self.harvestable()),
+            "rights_unestablished": len(self.rights_unestablished()),
+            "share_alike_sources": sum(1 for s in self._sources if s.has_share_alike),
             "nmr_sources": len(self.nmr_sources()),
             "measured_nmr_sources": len(self.measured_nmr_sources()),
             "with_assignments_yes": sum(1 for s in self.nmr_sources() if s.assignments == "yes"),

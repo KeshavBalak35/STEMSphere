@@ -19,18 +19,39 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 from .provenance import Lineage, unwrap
 from .records import NMRRecord, SourceRef
 
-#: Documented "this aggregator re-serves that source" relationships from the map.
-#: A record from the key source that matches a record from the value source is a mirror,
-#: not corroboration.
-KNOWN_MIRROR_OF: Dict[str, Tuple[str, ...]] = {
+#: Documented "this aggregator re-serves that source" relationships.
+#:
+#: Loaded from the registry's ``republishes`` / ``overlaps_with`` fields rather than hardcoded,
+#: so the lineage lives as data next to the evidence for it. The literal below is only the
+#: fallback used when the registry cannot be read (e.g. in an isolated unit test).
+_FALLBACK_MIRROR_OF: Dict[str, Tuple[str, ...]] = {
     "mona": ("massbank", "gnps"),
     "gnps": ("massbank",),
     "bindingdb": ("chembl",),
     "pdbe": ("rcsb",),
     "rcsb": ("pdbe",),
     "nfdi4chem": ("chemotion", "massbank", "nmrxiv"),
-    "fairsharing": (),
 }
+
+
+def _load_mirror_map() -> Dict[str, Tuple[str, ...]]:
+    try:
+        from ..sources.registry import load_registry
+
+        registry = load_registry()
+    except Exception:  # noqa: BLE001 -- dedup must work without the registry file
+        return dict(_FALLBACK_MIRROR_OF)
+
+    out: Dict[str, Tuple[str, ...]] = {}
+    for source in registry:
+        related = set(source.republishes) | set(source.overlaps_with)
+        if related:
+            out[source.id] = tuple(sorted(related))
+    return out or dict(_FALLBACK_MIRROR_OF)
+
+
+#: source_id -> the sources it is documented to share underlying records with.
+KNOWN_MIRROR_OF: Dict[str, Tuple[str, ...]] = _load_mirror_map()
 
 #: Preference order when picking a cluster's primary record. Earlier wins.
 _PRIMARY_SOURCE_PREFERENCE = (
