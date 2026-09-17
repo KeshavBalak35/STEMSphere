@@ -16,7 +16,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
-from .provenance import Lineage, unwrap
+from .provenance import UNKNOWN, Lineage, unwrap
 from .records import NMRRecord, SourceRef
 
 #: Documented "this aggregator re-serves that source" relationships.
@@ -70,7 +70,20 @@ def _shift_fingerprint(rec: NMRRecord, ndigits: int = 2) -> Tuple:
 
 
 def experiment_key(rec: NMRRecord, ndigits: int = 2) -> Tuple:
-    """Identity of the underlying *experiment*, independent of who served it."""
+    """Identity of the underlying *experiment*, independent of who served it.
+
+    A record whose molecule is not pinned by an InChIKey cannot be matched to anything: two
+    unidentified records with no shifts would otherwise share an all-UNKNOWN key and merge
+    into a single "experiment" despite being different molecules. Such a record gets a key
+    unique to itself, so it clusters alone and never absorbs another.
+    """
+    if unwrap(rec.molecule.inchikey) is UNKNOWN:
+        return (
+            "__unidentified__",
+            rec.source.source_id,
+            unwrap(rec.source.record_id),
+            id(rec) if unwrap(rec.source.record_id) is UNKNOWN else None,
+        )
     return (
         unwrap(rec.molecule.inchikey),
         unwrap(rec.nucleus),
@@ -119,20 +132,47 @@ class ExperimentCluster:
     def independent_support_count(self) -> int:
         """How many *genuinely independent* results back this experiment.
 
-        A declared mirror, and a source documented as re-serving another source already in
-        the cluster, both count as zero additional support.
+        Counts connected components of the documented overlap graph, not sources. Counting
+        pairwise against an already-counted list undercounts the suppression: if MoNA and
+        GNPS both re-serve MassBank and MassBank itself is absent from the cluster, neither
+        is a mirror *of the other* in the list, so both would count and one experiment would
+        read as two corroborating results.
         """
-        counted: List[str] = []
-        for r in self.records:
-            sid = r.source.source_id
-            if r.source.lineage is not Lineage.ORIGINAL_EXPERIMENT:
-                continue
-            if any(sid in KNOWN_MIRROR_OF.get(other, ()) or other in KNOWN_MIRROR_OF.get(sid, ())
-                   for other in counted):
-                continue
-            if sid not in counted:
-                counted.append(sid)
-        return len(counted)
+        sources = [
+            r.source.source_id for r in self.records
+            if r.source.lineage is Lineage.ORIGINAL_EXPERIMENT
+        ]
+        # Declared mirrors add nothing, whatever their source.
+        unique: List[str] = []
+        for sid in sources:
+            if sid not in unique:
+                unique.append(sid)
+
+        # Union-find over the documented overlap relation, including shared upstreams.
+        parent = {sid: sid for sid in unique}
+
+        def find(x: str) -> str:
+            while parent[x] != x:
+                parent[x] = parent[parent[x]]
+                x = parent[x]
+            return x
+
+        def union(a: str, b: str) -> None:
+            ra, rb = find(a), find(b)
+            if ra != rb:
+                parent[rb] = ra
+
+        for a in unique:
+            related_a = set(KNOWN_MIRROR_OF.get(a, ()))
+            for b in unique:
+                if a == b:
+                    continue
+                related_b = set(KNOWN_MIRROR_OF.get(b, ()))
+                # directly related, or both documented as re-serving a common upstream
+                if b in related_a or a in related_b or (related_a & related_b):
+                    union(a, b)
+
+        return len({find(sid) for sid in unique})
 
     def to_dict(self) -> dict:
         return {

@@ -86,10 +86,19 @@ class IdentityMatch(str, Enum):
     DIFFERENT_ISOTOPE = "different_isotope"
     DIFFERENT_STEREOISOMER = "different_stereoisomer"
     CONNECTIVITY_ONLY = "connectivity_only"
+    #: Both structures are pinned and they are not the same compound at all.
+    UNRELATED = "unrelated"
+    #: At least one structure is not pinned, so no relationship can be asserted.
+    UNKNOWN_RELATION = "unknown_relation"
 
     @property
     def is_exact(self) -> bool:
         return self is IdentityMatch.EXACT
+
+    @property
+    def is_related(self) -> bool:
+        """True when the record is at least a usable comparison for the submitted molecule."""
+        return self not in (IdentityMatch.UNRELATED, IdentityMatch.UNKNOWN_RELATION)
 
 
 class FieldStatus(str, Enum):

@@ -85,7 +85,14 @@ class JobBudget:
     def remaining_bytes(self) -> int:
         return max(0, self.caps.max_bytes_per_job - self.bytes_downloaded)
 
-    def check_before(self, host: str) -> None:
+    def reserve(self, host: str) -> None:
+        """Atomically check the caps and claim a request slot.
+
+        Checking and incrementing in one lock acquisition. Doing it in two -- check here,
+        increment later in :meth:`record` -- lets N concurrent callers all observe the same
+        under-cap count and every one of them proceed, so the job overshoots its request cap
+        by however many were in flight.
+        """
         with self._lock:
             if self.requests_made >= self.caps.max_requests_per_job:
                 raise PolicyDenied(
@@ -98,6 +105,10 @@ class JobBudget:
                     "JOB_BYTE_CAP",
                     f"job byte cap reached ({self.caps.max_bytes_per_job} bytes)",
                 )
+            self.requests_made += 1
+
+    #: Backwards-compatible alias. Reserving is the only correct way to check.
+    check_before = reserve
 
     def throttle(self, host: str, sleep=time.sleep, now=time.monotonic) -> float:
         """Block until this host's documented minimum spacing has elapsed. Returns seconds waited."""
@@ -114,8 +125,8 @@ class JobBudget:
         return wait
 
     def record(self, host: str, n_bytes: int) -> None:
+        """Record bytes for a slot already claimed by :meth:`reserve`."""
         with self._lock:
-            self.requests_made += 1
             self.bytes_downloaded += n_bytes
 
     def check_response_size(self, n_bytes: int) -> None:

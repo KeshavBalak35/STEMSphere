@@ -47,6 +47,14 @@ class MoleculeIdentity:
     name: Maybe = UNKNOWN
     external_ids: Dict[str, str] = field(default_factory=dict)
 
+    def __hash__(self) -> int:
+        """Hash on the structure keys only.
+
+        ``external_ids`` is a dict, so the dataclass-generated hash raises. Identity is the
+        structure, not which databases happen to have indexed it.
+        """
+        return hash((unwrap(self.inchikey), unwrap(self.smiles), unwrap(self.formula)))
+
     @property
     def skeleton_key(self) -> Optional[str]:
         """First InChIKey block -- the connectivity layer.
@@ -60,16 +68,24 @@ class MoleculeIdentity:
         return key.split("-")[0]
 
     def compare(self, other: "MoleculeIdentity") -> IdentityMatch:
-        """Classify how ``other`` relates to this molecule. Conservative by construction."""
+        """Classify how ``other`` relates to this molecule. Conservative by construction.
+
+        Three distinct outcomes that must not be conflated: the same compound, a different
+        form of the same skeleton, and a different compound entirely. Returning
+        "connectivity only" for two molecules that share no connectivity would be a false
+        claim of relatedness, so an unrelated pair says so, and an unpinned structure says
+        the relationship is unknown rather than guessing one.
+        """
         a, b = unwrap(self.inchikey), unwrap(other.inchikey)
-        if isinstance(a, str) and isinstance(b, str):
-            if a == b:
-                return IdentityMatch.EXACT
-            if self.skeleton_key and self.skeleton_key == other.skeleton_key:
-                # Same connectivity, different second block: stereo/isotope/protonation
-                # layer differs. We cannot tell which from the key alone.
-                return IdentityMatch.CONNECTIVITY_ONLY
-        return IdentityMatch.CONNECTIVITY_ONLY
+        if not isinstance(a, str) or not isinstance(b, str):
+            return IdentityMatch.UNKNOWN_RELATION
+        if a == b:
+            return IdentityMatch.EXACT
+        if self.skeleton_key and self.skeleton_key == other.skeleton_key:
+            # Same connectivity, different second block: stereo/isotope/protonation layer
+            # differs. We cannot tell which from the key alone.
+            return IdentityMatch.CONNECTIVITY_ONLY
+        return IdentityMatch.UNRELATED
 
 
 @dataclass(frozen=True)
@@ -188,6 +204,13 @@ class NMRRecord:
         """Atom indices that cannot be valid for this molecule."""
         problems: List[str] = []
         n = unwrap(self.molecule.atom_count)
+        if not isinstance(n, int) and n is not UNKNOWN and n is not None:
+            # A source may report the count as a string. Coerce rather than silently skip
+            # the range check, which would let an out-of-range index through unnoticed.
+            try:
+                n = int(n)
+            except (TypeError, ValueError):
+                n = None
         seen: Dict[int, int] = {}
         for s in self.shifts:
             if s.atom_index is None:

@@ -21,8 +21,17 @@ from typing import Dict, Iterable, List, Optional, Sequence
 
 from .calibration import evaluate
 from .dedup import ExperimentCluster, cluster_records
-from .provenance import FieldStatus, IdentityMatch, unwrap
+from .provenance import UNKNOWN, FieldStatus, IdentityMatch, Provenanced, unwrap
 from .records import MoleculeIdentity, NMRRecord
+
+
+def _plain(v):
+    """JSON-safe rendering. UNKNOWN becomes null; provenance is kept, not flattened."""
+    if v is UNKNOWN:
+        return None
+    if isinstance(v, Provenanced):
+        return v.to_dict()
+    return v
 
 
 @dataclass
@@ -63,9 +72,9 @@ class MoleculeDossier:
     def to_dict(self) -> dict:
         return {
             "submitted_molecule": {
-                "inchikey": unwrap(self.submitted.inchikey),
-                "smiles": unwrap(self.submitted.smiles),
-                "formula": unwrap(self.submitted.formula),
+                "inchikey": _plain(unwrap(self.submitted.inchikey)),
+                "smiles": _plain(unwrap(self.submitted.smiles)),
+                "formula": _plain(unwrap(self.submitted.formula)),
             },
             "sections": [s.to_dict() for s in self.sections],
             "status_summary": self.status_summary(),
@@ -80,19 +89,28 @@ def _split_by_identity(records: Sequence[NMRRecord]) -> tuple:
 
 
 def _cluster_evidence(clusters: Sequence[ExperimentCluster]) -> List[dict]:
+    """Render clusters as dossier evidence.
+
+    Clusters whose primary record the gate marked *not* discovery-usable are dropped
+    entirely: an atom mapping that is actually wrong (an index outside the molecule, two
+    shifts claiming one atom) is not incomplete data to show with a caveat, it is incorrect
+    data. Incomplete is fine to display; wrong is not.
+    """
     out: List[dict] = []
     for c in clusters:
         primary = c.primary
         verdict = evaluate(primary)
+        if not verdict.discovery_usable:
+            continue
         out.append({
             "source_ids": c.source_ids,
             "primary_source": primary.source.source_id,
-            "record_id": unwrap(primary.source.record_id),
-            "nucleus": unwrap(primary.nucleus),
+            "record_id": _plain(unwrap(primary.source.record_id)),
+            "nucleus": _plain(unwrap(primary.nucleus)),
             "evidence_class": primary.evidence_class.value,
             "spectrum_state": primary.spectrum_state.value,
             "identity_match": primary.identity_match.value,
-            "licence": unwrap(primary.source.licence),
+            "licence": _plain(unwrap(primary.source.licence)),
             "independent_support_count": c.independent_support_count(),
             "calibration_eligible": verdict.eligible,
             "rejected_by": verdict.rule_ids,
@@ -206,9 +224,9 @@ def build(
         status=FieldStatus.FOUND if unwrap(submitted.inchikey) else FieldStatus.NOT_FOUND,
         detail=("Exact structure pinned by InChIKey." if unwrap(submitted.inchikey)
                 else "No InChIKey supplied; every downstream match is connectivity-only at best."),
-        evidence=[{"inchikey": unwrap(submitted.inchikey),
-                   "smiles": unwrap(submitted.smiles),
-                   "formula": unwrap(submitted.formula)}],
+        evidence=[{"inchikey": _plain(unwrap(submitted.inchikey)),
+                   "smiles": _plain(unwrap(submitted.smiles)),
+                   "formula": _plain(unwrap(submitted.formula))}],
     ))
 
     for section in build_nmr_sections(

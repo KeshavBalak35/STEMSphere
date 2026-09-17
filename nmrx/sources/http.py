@@ -18,6 +18,7 @@ import json
 import ssl
 import urllib.error
 import urllib.request
+from urllib.parse import urlsplit, urlunsplit
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -102,6 +103,25 @@ def _utcnow() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+def redact(url: str) -> str:
+    """Strip any userinfo before a URL is recorded.
+
+    Refusing a URL for carrying credentials and then writing those credentials into the
+    request log would defeat the point of refusing it. The log is a durable artifact that
+    gets committed, so redaction happens on the way in, not on the way out.
+    """
+    try:
+        parts = urlsplit(url)
+    except ValueError:
+        return "(unparseable url)"
+    if "@" not in (parts.netloc or ""):
+        return url
+    host = parts.hostname or ""
+    if parts.port:
+        host = f"{host}:{parts.port}"
+    return urlunsplit((parts.scheme, f"***@{host}", parts.path, parts.query, parts.fragment))
+
+
 class BoundedHttpClient:
     """Policy-gated, byte-capped HTTPS client."""
 
@@ -149,11 +169,12 @@ class BoundedHttpClient:
         :class:`PolicyDenied` is also captured rather than raised, for the same reason.
         """
         started = _utcnow()
+        logged_url = redact(url)
         host = "(unparsed)"
         try:
             host = self.policy.host_of(url)
         except PolicyDenied as exc:
-            att = Attempt(url=url, host=host, source_id=source_id, purpose=purpose,
+            att = Attempt(url=logged_url, host=host, source_id=source_id, purpose=purpose,
                           started_at=started, outcome="policy_denied",
                           error=exc.message, reason_code=exc.reason_code)
             att.body = b""  # type: ignore[attr-defined]
@@ -161,18 +182,21 @@ class BoundedHttpClient:
 
         try:
             self.policy.authorize(url, source_id=source_id)
-            self.budget.check_before(host)
+            self.budget.reserve(host)
         except PolicyDenied as exc:
-            att = Attempt(url=url, host=host, source_id=source_id, purpose=purpose,
+            att = Attempt(url=logged_url, host=host, source_id=source_id, purpose=purpose,
                           started_at=started, outcome="policy_denied",
                           error=exc.message, reason_code=exc.reason_code)
             att.body = b""  # type: ignore[attr-defined]
             return self.log.add(att)
 
-        # The effective ceiling is the tighter of the per-response cap and what the job
-        # has left. `min` directly -- a falsy-zero fallback here would silently restore the
-        # full cap at the exact moment the job budget ran out.
-        cap = max_bytes if max_bytes is not None else self.budget.caps.max_bytes_per_response
+        # The effective ceiling is the tightest of: the policy's per-response cap, whatever
+        # the caller asked for, and what the job budget has left. A caller-supplied max_bytes
+        # can only TIGHTEN the policy cap -- passing a larger number must never raise it,
+        # or any call site could opt itself out of the limit.
+        cap = self.budget.caps.max_bytes_per_response
+        if max_bytes is not None:
+            cap = min(cap, max_bytes)
         cap = min(cap, self.budget.remaining_bytes())
 
         self.budget.throttle(host)
@@ -207,14 +231,14 @@ class BoundedHttpClient:
             elapsed = int((self._clock() - t0) * 1000)
             self.budget.record(host, len(body))
             if truncated:
-                att = Attempt(url=url, host=host, source_id=source_id, purpose=purpose,
+                att = Attempt(url=logged_url, host=host, source_id=source_id, purpose=purpose,
                               started_at=started, outcome="cap_exceeded", status=status,
                               bytes_downloaded=len(body), content_type=ctype,
                               elapsed_ms=elapsed, truncated=True,
                               reason_code="RESPONSE_BYTE_CAP",
                               error=f"body exceeded {cap} bytes and was abandoned")
             else:
-                att = Attempt(url=url, host=host, source_id=source_id, purpose=purpose,
+                att = Attempt(url=logged_url, host=host, source_id=source_id, purpose=purpose,
                               started_at=started, outcome="ok", status=status,
                               bytes_downloaded=len(body), content_type=ctype,
                               elapsed_ms=elapsed)
@@ -230,7 +254,7 @@ class BoundedHttpClient:
             if location and 300 <= exc.code < 400:
                 detail += f"; redirect to {location} not followed (target host must be granted separately)"
             self.budget.record(host, 0)
-            att = Attempt(url=url, host=host, source_id=source_id, purpose=purpose,
+            att = Attempt(url=logged_url, host=host, source_id=source_id, purpose=purpose,
                           started_at=started, outcome="http_error", status=exc.code,
                           elapsed_ms=elapsed, error=detail,
                           reason_code="REDIRECT_NOT_FOLLOWED" if location and 300 <= exc.code < 400 else None)
@@ -240,7 +264,7 @@ class BoundedHttpClient:
         except Exception as exc:  # noqa: BLE001 -- probes must report, not crash
             elapsed = int((self._clock() - t0) * 1000)
             self.budget.record(host, 0)
-            att = Attempt(url=url, host=host, source_id=source_id, purpose=purpose,
+            att = Attempt(url=logged_url, host=host, source_id=source_id, purpose=purpose,
                           started_at=started, outcome="network_error",
                           elapsed_ms=elapsed, error=f"{type(exc).__name__}: {exc}")
             att.body = b""  # type: ignore[attr-defined]
