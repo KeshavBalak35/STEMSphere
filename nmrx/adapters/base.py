@@ -20,6 +20,7 @@ the registry.
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence
@@ -70,6 +71,8 @@ def get_path(payload: Any, path: str, default: Any = UNKNOWN) -> Any:
             else:
                 return default
         while rest:
+            if "]" not in rest:
+                return default          # unterminated index -- a typo, not a path
             idx_s, _, rest = rest.partition("]")
             rest = rest.lstrip("[")
             try:
@@ -86,10 +89,16 @@ def get_path(payload: Any, path: str, default: Any = UNKNOWN) -> Any:
 #: Value transforms a mapping may name. Kept tiny and total -- a transform that cannot
 #: produce a sensible value returns UNKNOWN rather than guessing.
 def _to_float(v: Any) -> Any:
+    """Total: anything that is not a finite real number yields UNKNOWN.
+
+    NaN and infinity parse happily as floats and would be stored as chemical shifts, where
+    they silently poison every downstream average, comparison and export.
+    """
     try:
-        return float(v)
+        f = float(v)
     except (TypeError, ValueError):
         return UNKNOWN
+    return f if math.isfinite(f) else UNKNOWN
 
 
 def _to_int(v: Any) -> Any:
@@ -132,15 +141,28 @@ def _apply(value: Any, spec: dict) -> Any:
 
 
 def _field(payload: Any, spec: Optional[dict]) -> Any:
-    """Resolve one mapped field. A spec with no ``path`` yields its ``const``, else UNKNOWN."""
+    """Resolve one mapped field. A spec with no ``path`` yields its ``const``, else UNKNOWN.
+
+    There is deliberately **no ``default``**. A mapping that could substitute a value when the
+    source omitted a field would let a missing licence become "CC0" or a missing solvent
+    become "CDCl3" -- exactly the fabrication the whole package exists to prevent. An absent
+    path yields UNKNOWN, always. ``const`` is for values that genuinely do not come from the
+    payload (a fixed licence for a single-licence source), and is rejected alongside a path so
+    it cannot act as a fallback.
+    """
     if not spec:
         return UNKNOWN
-    if "const" in spec and "path" not in spec:
+    if "default" in spec:
+        raise AdapterError(
+            "mapping field declares a 'default'; defaults are forbidden because they turn a "
+            "field the source omitted into a value it never stated. Use 'const' for a value "
+            "that genuinely does not come from the payload."
+        )
+    if "const" in spec:
+        if "path" in spec:
+            raise AdapterError("mapping field declares both 'const' and 'path'; pick one")
         return spec["const"]
-    raw = get_path(payload, spec.get("path", ""))
-    if raw is UNKNOWN and "default" in spec:
-        return spec["default"]
-    return _apply(raw, spec)
+    return _apply(get_path(payload, spec.get("path", "")), spec)
 
 
 # --- the plan ----------------------------------------------------------------
@@ -313,15 +335,17 @@ def _map_shifts(row: Any, spec: dict) -> List[ShiftAssignment]:
         return []
     out: List[ShiftAssignment] = []
     for r in rows:
-        value = _field(r, spec.get("shift_ppm"))
+        # Route every conversion through the total transforms. Calling int()/float() here
+        # directly would raise on a value the transforms are specified to turn into UNKNOWN.
+        value = _to_float(_field(r, spec.get("shift_ppm")))
         if value is UNKNOWN:
-            continue                      # a peak with no number is not a shift
-        idx = _field(r, spec.get("atom_index"))
+            continue                      # a peak with no usable number is not a shift
+        idx = _to_int(_field(r, spec.get("atom_index")))
         element = _field(r, spec.get("element"))
         out.append(ShiftAssignment(
-            atom_index=None if idx is UNKNOWN else int(idx),
+            atom_index=None if idx is UNKNOWN else idx,
             element="?" if element is UNKNOWN else str(element),
-            shift_ppm=float(value),
+            shift_ppm=value,
             multiplicity=_field(r, spec.get("multiplicity")),
             intensity=_field(r, spec.get("intensity")),
         ))

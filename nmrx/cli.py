@@ -181,8 +181,25 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Optional[List[str]] = None) -> int:
+    """Run a command, turning a missing or corrupt data file into a readable message.
+
+    A stack trace is the wrong answer to "the registry file is not there". The exit code
+    stays non-zero so scripts still notice.
+    """
     args = build_parser().parse_args(argv)
-    return args.func(args)
+    try:
+        return args.func(args)
+    except FileNotFoundError as exc:
+        print(f"nmrx: required data file not found: {exc.filename or exc}", file=sys.stderr)
+        print("      expected it under nmrx/data/ -- is the package complete?", file=sys.stderr)
+        return 2
+    except json.JSONDecodeError as exc:
+        print(f"nmrx: a data file is not valid JSON: {exc}", file=sys.stderr)
+        return 2
+    except BrokenPipeError:
+        return 0                      # piping into `head` is not an error
+    except KeyboardInterrupt:
+        return 130
 
 
 if __name__ == "__main__":

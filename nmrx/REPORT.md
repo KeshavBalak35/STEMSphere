@@ -229,7 +229,7 @@ parameter name, no response schema.
 
 ## 8. Verification
 
-282 offline tests pass: `python3 -m unittest discover -s tests -t .`
+297 offline tests pass: `python3 -m unittest discover -s tests -t .`
 
 Standard library only. Among the checks that keep this report honest:
 

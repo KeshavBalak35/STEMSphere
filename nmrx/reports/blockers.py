@@ -80,17 +80,24 @@ def latest_probe(directory: Path | str = PROBE_DIR) -> Optional[dict]:
 def from_probe(report: dict) -> List[Blocker]:
     """One blocker per host the environment refused -- not one per attempted URL."""
     by_host: Dict[str, dict] = {}
-    for row in report.get("results", []):
-        if row["classification"] == "blocked_by_environment_network_policy":
-            by_host.setdefault(row["host"], row)
+    for row in report.get("results", []) or []:
+        # Tolerate a truncated or hand-edited probe artifact rather than crashing on it:
+        # a malformed report should still yield the blockers it does describe.
+        if not isinstance(row, dict):
+            continue
+        if row.get("classification") != "blocked_by_environment_network_policy":
+            continue
+        host = row.get("host")
+        if host:
+            by_host.setdefault(host, row)
 
     out: List[Blocker] = []
     for host, row in sorted(by_host.items()):
         out.append(Blocker(
-            source_id=row["source_id"],
+            source_id=row.get("source_id", "(unknown)"),
             host=host,
             layer="environment_network",
-            what_failed=row["url"],
+            what_failed=row.get("url", "(url not recorded)"),
             observed=row.get("error") or "CONNECT refused with 403",
             action=(
                 f"Add '{host}' to the environment's Allowed domains "
@@ -98,7 +105,7 @@ def from_probe(report: dict) -> List[Blocker]:
                 "package-manager access. This is an environment setting; it cannot be "
                 "changed from chat or from project code."
             ),
-            blocks=[row["purpose"]],
+            blocks=[row.get("purpose", "(purpose not recorded)")],
         ))
     return out
 
@@ -153,8 +160,9 @@ def from_policy(policy: AccessPolicy, registry: SourceRegistry) -> List[Blocker]
 def build(probe: Optional[dict] = None,
           policy: Optional[AccessPolicy] = None,
           registry: Optional[SourceRegistry] = None) -> dict:
-    policy = policy or load_policy()
-    registry = registry or load_registry()
+    # `is None`, not truthiness -- an empty SourceRegistry is falsy.
+    policy = load_policy() if policy is None else policy
+    registry = load_registry() if registry is None else registry
     probe = probe if probe is not None else latest_probe()
 
     network = from_probe(probe) if probe else []

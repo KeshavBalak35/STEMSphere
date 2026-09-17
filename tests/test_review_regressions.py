@@ -245,3 +245,134 @@ class TestDossierSerialisation(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestMappingsCannotFabricate(unittest.TestCase):
+    """The core invariant, enforced at the mapping layer."""
+
+    def _plan(self, mapping):
+        from nmrx.adapters.base import AdapterPlan
+        return AdapterPlan.from_dict({"source_id": "nmrshiftdb2", "schema_confirmed": False,
+                                      "record_mapping": mapping})
+
+    def test_a_default_in_a_mapping_is_refused(self):
+        """A default turns a field the source omitted into a value it never stated."""
+        from nmrx.adapters.base import AdapterError, _field
+        with self.assertRaises(AdapterError) as ctx:
+            _field({}, {"path": "license", "default": "CC0"})
+        self.assertIn("defaults are forbidden", str(ctx.exception))
+
+    def test_const_and_path_together_are_refused(self):
+        from nmrx.adapters.base import AdapterError, _field
+        with self.assertRaises(AdapterError):
+            _field({}, {"path": "license", "const": "CC0"})
+
+    def test_const_alone_still_works(self):
+        from nmrx.adapters.base import _field
+        self.assertEqual(_field({}, {"const": "CC0"}), "CC0")
+
+    def test_an_absent_licence_stays_unknown(self):
+        from nmrx.adapters.base import _field
+        from nmrx.model.provenance import UNKNOWN
+        self.assertIs(_field({}, {"path": "license"}), UNKNOWN)
+
+
+class TestNonFiniteShiftsAreRejected(unittest.TestCase):
+    def test_nan_and_infinity_never_become_chemical_shifts(self):
+        """They parse as floats and would poison every downstream average and export."""
+        from nmrx.adapters.base import AdapterPlan, map_payload
+        plan = AdapterPlan.from_dict({
+            "source_id": "nmrshiftdb2", "schema_confirmed": False,
+            "record_mapping": {"records_path": "", "shifts": {
+                "path": "peaks", "shift_ppm": {"path": "ppm", "transform": "float"},
+                "element": {"path": "el"}, "atom_index": {"path": "atom", "transform": "int"}}},
+        })
+        payload = {"peaks": [
+            {"el": "C", "ppm": "NaN", "atom": 0},
+            {"el": "C", "ppm": "inf", "atom": 1},
+            {"el": "C", "ppm": "-Infinity", "atom": 2},
+            {"el": "C", "ppm": "12.5", "atom": 3},
+        ]}
+        shifts = map_payload(payload, plan)[0].shifts
+        self.assertEqual([s.shift_ppm for s in shifts], [12.5])
+
+    def test_the_float_transform_is_total(self):
+        from nmrx.adapters.base import TRANSFORMS
+        from nmrx.model.provenance import UNKNOWN
+        for bad in ("nan", "inf", "-inf", "abc", None, [], {}):
+            with self.subTest(bad=bad):
+                self.assertIs(TRANSFORMS["float"](bad), UNKNOWN)
+
+
+class TestEmptyCollectionsAreNotFalsyBugs(unittest.TestCase):
+    """SourceRegistry defines __len__, so an empty one is falsy."""
+
+    def test_an_empty_registry_is_not_swapped_for_the_on_disk_one(self):
+        from nmrx.reports.ranking import rank_next_connectors
+        from nmrx.sources.registry import SourceRegistry
+        self.assertEqual(rank_next_connectors(SourceRegistry([])), [])
+
+    def test_an_empty_registry_yields_no_rights_blockers(self):
+        from nmrx.reports.blockers import build
+        from nmrx.sources.registry import SourceRegistry
+        report = build(probe={"results": []}, registry=SourceRegistry([]))
+        rights = [b for b in report["rights_and_policy_blockers"] if b["layer"] == "provider_rights"]
+        self.assertEqual(rights, [])
+
+    def test_limit_zero_means_zero_not_unlimited(self):
+        from nmrx.reports.ranking import rank_next_connectors
+        from nmrx.sources.registry import load_registry
+        self.assertEqual(rank_next_connectors(load_registry(), limit=0), [])
+
+
+class TestMalformedInputDoesNotCrash(unittest.TestCase):
+    def test_a_registry_entry_without_an_id_gives_a_clear_error(self):
+        from nmrx.sources.registry import RegistryError, SourceRegistry
+        with self.assertRaises(RegistryError) as ctx:
+            SourceRegistry([{"name": "x"}])
+        self.assertIn("no 'id' key", str(ctx.exception))
+
+    def test_wrongly_typed_sections_become_violations_not_exceptions(self):
+        from nmrx.sources.registry import SourceRegistry
+        problems = SourceRegistry([{"id": "a", "rights": "oops",
+                                    "nmr_relevance": 5, "access": []}]).validate()
+        self.assertTrue(any("rights must be an object" in p for p in problems))
+        self.assertTrue(any("nmr_relevance must be an object" in p for p in problems))
+
+    def test_a_truncated_probe_report_still_yields_its_blockers(self):
+        from nmrx.reports.blockers import from_probe
+        blockers = from_probe({"results": [
+            None,
+            {"classification": "blocked_by_environment_network_policy"},   # no host
+            {"classification": "blocked_by_environment_network_policy", "host": "h.example"},
+        ]})
+        self.assertEqual([b.host for b in blockers], ["h.example"])
+
+    def test_an_unterminated_path_index_reads_nothing(self):
+        from nmrx.adapters.base import get_path
+        from nmrx.model.provenance import UNKNOWN
+        self.assertIs(get_path({"a": [{"b": 1}]}, "a[0.b"), UNKNOWN)
+
+
+class TestCliFailsReadably(unittest.TestCase):
+    def test_an_unknown_source_id_exits_non_zero_without_a_traceback(self):
+        import contextlib
+        from nmrx.cli import main
+        err = io.StringIO()
+        out = io.StringIO()
+        with contextlib.redirect_stderr(err), contextlib.redirect_stdout(out):
+            code = main(["registry", "nosuchsource"])
+        self.assertEqual(code, 1)
+        self.assertIn("no source with id", err.getvalue())
+        self.assertNotIn("Traceback", err.getvalue())
+
+    def test_a_missing_data_file_is_reported_not_raised(self):
+        import contextlib
+        from unittest import mock
+        from nmrx.cli import main
+        err = io.StringIO()
+        with mock.patch("nmrx.cli.load_registry", side_effect=FileNotFoundError(2, "x", "gone.json")):
+            with contextlib.redirect_stderr(err), contextlib.redirect_stdout(io.StringIO()):
+                code = main(["registry"])
+        self.assertEqual(code, 2)
+        self.assertIn("not found", err.getvalue())

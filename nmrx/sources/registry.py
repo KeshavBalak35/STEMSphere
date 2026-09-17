@@ -192,7 +192,11 @@ class SourceRegistry:
     def __init__(self, entries: Sequence[dict], meta: Optional[dict] = None) -> None:
         self._sources = [Source(e) for e in entries]
         self._by_id: Dict[str, Source] = {}
-        for s in self._sources:
+        for index, s in enumerate(self._sources):
+            if not isinstance(s.raw, dict):
+                raise RegistryError(f"entry {index} is not an object")
+            if "id" not in s.raw:
+                raise RegistryError(f"entry {index} has no 'id' key")
             if s.id in self._by_id:
                 raise RegistryError(f"duplicate source id {s.id!r}")
             self._by_id[s.id] = s
@@ -314,12 +318,21 @@ class SourceRegistry:
                     "grants no ingestion permission"
                 )
             rights = e.get("rights", {})
+            if not isinstance(rights, dict):
+                problems.append(f"{where}: rights must be an object")
+                rights = {}
             if rights.get("status") not in RIGHTS_STATUS_VALUES:
                 problems.append(f"{where}: rights.status {rights.get('status')!r} invalid")
             if rights.get("commercial_use") not in ("yes", "yes_with_share_alike", "no",
                                                     "unknown", "negotiate"):
                 problems.append(f"{where}: rights.commercial_use {rights.get('commercial_use')!r} invalid")
             nmr = e.get("nmr_relevance", {})
+            if not isinstance(nmr, dict):
+                problems.append(f"{where}: nmr_relevance must be an object")
+                nmr = {}
+            access = e.get("access", {})
+            if not isinstance(access, dict):
+                problems.append(f"{where}: access must be an object")
             for k in ("assignments", "conditions"):
                 if nmr.get(k) not in VERDICT_VALUES:
                     problems.append(f"{where}: nmr_relevance.{k} {nmr.get(k)!r} invalid")
@@ -337,7 +350,7 @@ class SourceRegistry:
                 problems.append(f"{where}: engine_supported {e.get('engine_supported')!r} invalid")
             if not isinstance(rights.get("obligations", []), list):
                 problems.append(f"{where}: rights.obligations must be a list")
-            for route in e.get("access", {}).get("routes", []) or []:
+            for route in (access if isinstance(access, dict) else {}).get("routes", []) or []:
                 if route.get("provenance") not in ("documented", "inferred"):
                     problems.append(
                         f"{where}: route {route.get('url')!r} has provenance "

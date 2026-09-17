@@ -130,9 +130,11 @@ def rank_next_connectors(
     limit: Optional[int] = None,
 ) -> List[Ranked]:
     """Rank sources NMRx has not yet connected, best first."""
-    registry = registry or load_registry()
-    policy = policy or load_policy()
-    capabilities = capabilities or {}
+    # `is None`, not truthiness: SourceRegistry defines __len__, so an empty one is
+    # falsy and a caller passing it would silently get the whole on-disk registry back.
+    registry = load_registry() if registry is None else registry
+    policy = load_policy() if policy is None else policy
+    capabilities = {} if capabilities is None else capabilities
 
     granted_sources = {g.source_id for g in policy.granted_hosts()}
     candidates: List[Source] = []
@@ -147,7 +149,8 @@ def rank_next_connectors(
 
     ranked = [score_source(s, capabilities.get(s.id), policy) for s in candidates]
     ranked.sort(key=lambda r: r.score, reverse=True)
-    return ranked[:limit] if limit else ranked
+    # `is None`, not truthiness: --limit 0 means zero results, not 'no limit'.
+    return ranked if limit is None else ranked[:limit]
 
 
 def render_text(ranked: Sequence[Ranked]) -> str:
