@@ -169,8 +169,11 @@ class BoundedHttpClient:
             att.body = b""  # type: ignore[attr-defined]
             return self.log.add(att)
 
+        # The effective ceiling is the tighter of the per-response cap and what the job
+        # has left. `min` directly -- a falsy-zero fallback here would silently restore the
+        # full cap at the exact moment the job budget ran out.
         cap = max_bytes if max_bytes is not None else self.budget.caps.max_bytes_per_response
-        cap = min(cap, self.budget.remaining_bytes() or cap)
+        cap = min(cap, self.budget.remaining_bytes())
 
         self.budget.throttle(host)
         t0 = self._clock()
@@ -188,7 +191,13 @@ class BoundedHttpClient:
                 status = getattr(resp, "status", None) or resp.getcode()
                 ctype = resp.headers.get("Content-Type")
                 while True:
-                    chunk = resp.read(_CHUNK)
+                    # Read at most one byte past the cap: enough to know the body was
+                    # oversized, without pulling a whole extra chunk we then discard.
+                    want = min(_CHUNK, cap - len(body) + 1)
+                    if want <= 0:
+                        truncated = True
+                        break
+                    chunk = resp.read(want)
                     if not chunk:
                         break
                     body.extend(chunk)

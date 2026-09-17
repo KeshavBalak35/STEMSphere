@@ -181,6 +181,18 @@ class AccessPolicy:
     # -- the gate ------------------------------------------------------------
 
     def host_of(self, url: str) -> str:
+        """Normalise ``url`` to the hostname the request would actually reach.
+
+        Four things are refused here rather than at match time, because each one lets a
+        string that *looks* like a granted host reach somewhere else:
+
+        * a scheme other than https;
+        * embedded credentials -- NMRx has no authenticated grant, and a userinfo segment
+          would otherwise be written verbatim into the request log;
+        * a port other than 443 -- a granted host on another port is a different service;
+        * a trailing dot (``host.``) -- the DNS root form resolves the same but would not
+          match a prohibition entry by string comparison.
+        """
         parts = urlsplit(url)
         if parts.scheme != "https":
             raise PolicyDenied(
@@ -189,7 +201,24 @@ class AccessPolicy:
             )
         if not parts.hostname:
             raise PolicyDenied("NO_HOST", f"could not parse a hostname from {url!r}")
-        return parts.hostname.lower()
+        if parts.username is not None or parts.password is not None:
+            raise PolicyDenied(
+                "CREDENTIALS_IN_URL",
+                "credentials embedded in a URL are refused: no granted source is "
+                "authenticated, and the userinfo segment would be recorded in the request log",
+            )
+        try:
+            port = parts.port
+        except ValueError:
+            raise PolicyDenied("BAD_PORT", f"unparseable port in {url!r}") from None
+        if port not in (None, 443):
+            raise PolicyDenied(
+                "PORT_NOT_443",
+                f"port {port} is not 443; a granted host reached on another port is a "
+                "different service and is not covered by the grant",
+            )
+        # Strip the DNS root dot so "host." cannot dodge an exact prohibition match.
+        return parts.hostname.lower().rstrip(".")
 
     def authorize(self, url: str, *, source_id: Optional[str] = None) -> GrantedHost:
         """Return the grant for ``url`` or raise :class:`PolicyDenied`.

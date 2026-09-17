@@ -160,3 +160,67 @@ class TestHostScopeIsDocumented(unittest.TestCase):
             with self.subTest(host=host), self.assertRaises(PolicyDenied) as ctx:
                 self.policy.authorize(f"https://{host}/x")
             self.assertEqual(ctx.exception.reason_code, "HOST_NOT_GRANTED")
+
+
+class TestUrlGateCannotBeTricked(unittest.TestCase):
+    """A string that merely looks like a granted host must not reach the network."""
+
+    def setUp(self):
+        self.policy = load_policy()
+
+    def _deny(self, url, code):
+        with self.assertRaises(PolicyDenied) as ctx:
+            self.policy.authorize(url)
+        self.assertEqual(ctx.exception.reason_code, code, f"for {url}")
+
+    def test_userinfo_cannot_disguise_the_real_host(self):
+        """https://granted.host@evil.com/ actually connects to evil.com.
+
+        Denied either way -- the userinfo check happens to fire first. What matters is that
+        it is never resolved to the grant whose name appears in the userinfo segment.
+        """
+        url = "https://pubchem.ncbi.nlm.nih.gov@evil.com/x"
+        with self.assertRaises(PolicyDenied) as ctx:
+            self.policy.authorize(url)
+        self.assertIn(ctx.exception.reason_code, ("CREDENTIALS_IN_URL", "HOST_NOT_GRANTED"))
+
+        # And with the userinfo check removed from the picture, the host still is not granted.
+        with self.assertRaises(PolicyDenied) as ctx2:
+            self.policy.authorize("https://evil.com/x")
+        self.assertEqual(ctx2.exception.reason_code, "HOST_NOT_GRANTED")
+
+    def test_embedded_credentials_are_refused(self):
+        """No granted source is authenticated, and userinfo would land in the request log."""
+        self._deny("https://user:pass@pubchem.ncbi.nlm.nih.gov/x", "CREDENTIALS_IN_URL")
+        self._deny("https://user@pubchem.ncbi.nlm.nih.gov/x", "CREDENTIALS_IN_URL")
+
+    def test_a_non_standard_port_is_refused(self):
+        """A granted host on another port is a different service."""
+        self._deny("https://pubchem.ncbi.nlm.nih.gov:8443/x", "PORT_NOT_443")
+
+    def test_an_explicit_443_is_accepted(self):
+        self.assertEqual(self.policy.authorize("https://pubchem.ncbi.nlm.nih.gov:443/x").source_id,
+                         "pubchem")
+
+    def test_an_unparseable_port_is_refused(self):
+        self._deny("https://pubchem.ncbi.nlm.nih.gov:99999/x", "BAD_PORT")
+
+    def test_a_subdomain_suffix_does_not_match(self):
+        self._deny("https://pubchem.ncbi.nlm.nih.gov.evil.com/x", "HOST_NOT_GRANTED")
+
+    def test_case_is_normalised(self):
+        self.assertEqual(self.policy.authorize("https://PubChem.NCBI.NLM.NIH.gov/x").source_id,
+                         "pubchem")
+
+    def test_a_trailing_dot_cannot_dodge_the_prohibition(self):
+        """'sdbs.db.aist.go.jp.' resolves the same but would not match by string."""
+        for url in ("https://sdbs.db.aist.go.jp./x", "https://SDBS.DB.AIST.GO.JP./x"):
+            with self.subTest(url=url):
+                self._deny(url, "HOST_PROHIBITED")
+
+    def test_a_trailing_dot_still_matches_a_grant(self):
+        self.assertEqual(self.policy.authorize("https://pubchem.ncbi.nlm.nih.gov./x").source_id,
+                         "pubchem")
+
+    def test_a_scheme_relative_url_is_refused(self):
+        self._deny("//pubchem.ncbi.nlm.nih.gov/x", "SCHEME_NOT_HTTPS")

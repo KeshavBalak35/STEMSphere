@@ -156,3 +156,34 @@ class TestLogSerialisation(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestCapArithmetic(unittest.TestCase):
+    def test_overshoot_is_at_most_one_byte(self):
+        """The reader must not pull a whole extra chunk past the cap."""
+        client, _ = _client(response=_FakeResponse(b"x" * 500_000))
+        attempt = client.get(GRANTED, source_id="pubchem", purpose="big", max_bytes=1000)
+        self.assertEqual(attempt.outcome, "cap_exceeded")
+        self.assertEqual(attempt.bytes_downloaded, 1001)
+
+    def test_a_single_response_cannot_blow_past_the_job_byte_cap(self):
+        """The per-response cap must not silently reopen when the job budget runs low."""
+        client, _ = _client(response=_FakeResponse(b"y" * 50_000))
+        client.budget.caps.max_bytes_per_job = 2000
+        attempt = client.get(GRANTED, source_id="pubchem", purpose="big")
+        self.assertEqual(attempt.bytes_downloaded, 2001)
+        self.assertEqual(attempt.outcome, "cap_exceeded")
+
+    def test_a_body_exactly_at_the_cap_is_not_truncated(self):
+        client, _ = _client(response=_FakeResponse(b"z" * 1000))
+        attempt = client.get(GRANTED, source_id="pubchem", purpose="exact", max_bytes=1000)
+        self.assertEqual(attempt.outcome, "ok")
+        self.assertFalse(attempt.truncated)
+        self.assertEqual(attempt.bytes_downloaded, 1000)
+
+    def test_a_url_with_credentials_never_reaches_the_opener(self):
+        """Credentials must not be recorded in the log or sent."""
+        client, opener = _client(response=_FakeResponse(b"{}"))
+        attempt = client.get("https://u:p@pubchem.ncbi.nlm.nih.gov/x", purpose="x")
+        self.assertEqual(attempt.reason_code, "CREDENTIALS_IN_URL")
+        self.assertEqual(opener.calls, [])
