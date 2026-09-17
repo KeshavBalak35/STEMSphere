@@ -229,12 +229,17 @@ parameter name, no response schema.
 
 ## 8. Verification
 
-297 offline tests pass: `python3 -m unittest discover -s tests -t .`
+302 offline tests pass: `python3 -m unittest discover -s tests -t .`
 
 Standard library only. Among the checks that keep this report honest:
 
-* every route marked `documented` is traceable verbatim to the research material — this caught
-  one route that was not, and it was reclassified;
+* every route marked `documented` is traceable verbatim to the research material — checked
+  against a committed list of all 128 URLs in that material, so the guarantee cannot quietly
+  degrade into a skipped test. It caught one route that was not traceable, and it was
+  reclassified as inferred;
+* a record parsed from an unconfirmed mapping is **not** calibration-eligible: evidence class,
+  lineage and identity relation all default to unknown rather than to the favourable value,
+  and the gate rejects it on CAL-001, CAL-002 and CAL-003;
 * the registry is never more permissive than the independent rights review;
 * no source the research hedged is upgraded to a settled licence;
 * no adapter claims a confirmed schema;

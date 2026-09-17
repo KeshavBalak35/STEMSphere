@@ -13,8 +13,9 @@ from nmrx.sources.registry import (
     load_registry,
 )
 
-UPLOADED = Path("/root/.claude/uploads/8e17b3ed-5e1d-510c-b487-8bd3f4a0e311"
-                "/958a19a8-NMRx_Chemical_Source_Registry.json")
+RESEARCH_URLS = set(json.loads(
+    (Path(__file__).resolve().parent.parent / "nmrx" / "data" / "research_urls.json").read_text()
+)["urls"])
 
 
 class TestRegistryContract(unittest.TestCase):
@@ -149,23 +150,24 @@ class TestRouteProvenance(unittest.TestCase):
                     self.assertIn(route.get("provenance"), ("documented", "inferred"))
 
     def test_routes_only_cite_urls_that_exist_in_the_research_material(self):
-        """No endpoint may be composed out of thin air."""
-        if not UPLOADED.exists():
-            self.skipTest("original research registry not available in this environment")
-        corpus = UPLOADED.read_text()
-        map_path = UPLOADED.with_name("18abb5f3-NMRx_Chemical_Database_Map.md")
-        if map_path.exists():
-            corpus += map_path.read_text()
+        """No endpoint may be composed out of thin air.
 
+        Checked against nmrx/data/research_urls.json, which is committed, so this guarantee
+        does not quietly turn into a skip once the original uploads are gone.
+        """
         invented = []
         for s in load_registry():
             for route in s.routes():
                 url = (route.get("url") or "").rstrip("/")
                 if not url or route.get("provenance") == "inferred":
                     continue
-                if url not in corpus:
+                if url not in RESEARCH_URLS:
                     invented.append((s.id, url))
         self.assertEqual(invented, [], f"documented routes not found in the research material: {invented}")
+
+    def test_the_research_url_list_is_present_and_substantial(self):
+        """If this file goes missing the traceability guarantee is gone, not merely skipped."""
+        self.assertGreater(len(RESEARCH_URLS), 100)
 
 
 class TestRegistryAgreesWithPolicy(unittest.TestCase):

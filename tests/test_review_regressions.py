@@ -136,7 +136,8 @@ class TestSupportCountingIsNotInflated(unittest.TestCase):
     def _rec(self, source_id):
         return NMRRecord(
             molecule=MoleculeIdentity(inchikey=KEY_A, atom_count=2),
-            source=SourceRef(source_id=source_id, record_id=f"{source_id}-1", licence="CC BY 4.0"),
+            source=SourceRef(source_id=source_id, record_id=f"{source_id}-1",
+                             licence="CC BY 4.0", lineage=Lineage.ORIGINAL_EXPERIMENT),
             nucleus="13C",
             conditions=ExperimentalConditions(solvent="CDCl3", temperature_k=298.0,
                                               reference_compound="TMS"),

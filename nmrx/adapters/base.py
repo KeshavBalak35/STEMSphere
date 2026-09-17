@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import json
 import math
+from copy import deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence
@@ -211,7 +212,10 @@ class AdapterPlan:
             schema_confirmed=bool(d.get("schema_confirmed", False)),
             hosts_required=list(d.get("hosts_required", [])),
             routes=[Route(**r) for r in d.get("routes", [])],
-            record_mapping=dict(d.get("record_mapping", {})),
+            # Deep copy: record_mapping is nested, so a shallow dict() would leave the
+            # plan sharing inner dicts with the caller's document. Editing a loaded plan
+            # would then mutate whatever it was loaded from.
+            record_mapping=deepcopy(d.get("record_mapping", {})),
             capabilities=dict(d.get("capabilities", {})),
             blocking_unknowns=list(d.get("blocking_unknowns", [])),
             notes=d.get("notes", ""),
@@ -272,7 +276,7 @@ def _map_one(row: Any, plan: AdapterPlan, retrieved_at: Any) -> NMRRecord:
 
     src_spec = m.get("source", {})
     lineage = Lineage(_enum_value(_field(row, src_spec.get("lineage")),
-                                  Lineage, Lineage.ORIGINAL_EXPERIMENT))
+                                  Lineage, Lineage.UNKNOWN))
     original = _field(row, src_spec.get("original_source_id"))
     source = SourceRef(
         source_id=plan.source_id,
@@ -297,7 +301,7 @@ def _map_one(row: Any, plan: AdapterPlan, retrieved_at: Any) -> NMRRecord:
     shifts = _map_shifts(row, m.get("shifts", {}))
 
     evidence = EvidenceClass(_enum_value(_field(row, m.get("evidence_class")),
-                                         EvidenceClass, EvidenceClass.MEASURED))
+                                         EvidenceClass, EvidenceClass.UNKNOWN))
     state_raw = _field(row, m.get("spectrum_state"))
     if state_raw is UNKNOWN:
         # Derive honestly from what actually arrived rather than assuming.
@@ -319,7 +323,7 @@ def _map_one(row: Any, plan: AdapterPlan, retrieved_at: Any) -> NMRRecord:
         spectrum_state=state,
         identity_match=IdentityMatch(_enum_value(_field(row, m.get("identity_match")),
                                                  IdentityMatch,
-                                                 IdentityMatch.CONNECTIVITY_ONLY)),
+                                                 IdentityMatch.UNKNOWN_RELATION)),
         conditions=conditions,
         shifts=shifts,
         raw_file_urls=_string_list(row, m.get("raw_file_urls")),

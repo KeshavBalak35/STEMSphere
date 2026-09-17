@@ -97,11 +97,13 @@ class SourceRef:
     url: Maybe = UNKNOWN
     retrieved_at: Maybe = UNKNOWN
     licence: Maybe = UNKNOWN
-    lineage: Lineage = Lineage.ORIGINAL_EXPERIMENT
+    #: Defaults to UNKNOWN: a source that did not state its lineage has not established one.
+    lineage: Lineage = Lineage.UNKNOWN
     original_source_id: Optional[str] = None   # set when lineage is a mirror/reprocess
 
     def __post_init__(self) -> None:
-        if self.lineage is not Lineage.ORIGINAL_EXPERIMENT and not self.original_source_id:
+        if self.lineage in (Lineage.MIRRORED_COPY, Lineage.REPROCESSED_VERSION) \
+                and not self.original_source_id:
             raise ValueError(
                 f"lineage {self.lineage.value!r} requires original_source_id so the "
                 "originating experiment stays traceable"
@@ -178,9 +180,11 @@ class NMRRecord:
     molecule: MoleculeIdentity
     source: SourceRef
     nucleus: Maybe = UNKNOWN
-    evidence_class: EvidenceClass = EvidenceClass.MEASURED
+    #: All three default to the *uninformative* value, never the favourable one. A payload
+    #: that says nothing must not be read as saying "measured, original, related".
+    evidence_class: EvidenceClass = EvidenceClass.UNKNOWN
     spectrum_state: SpectrumState = SpectrumState.UNASSIGNED_PEAKS
-    identity_match: IdentityMatch = IdentityMatch.CONNECTIVITY_ONLY
+    identity_match: IdentityMatch = IdentityMatch.UNKNOWN_RELATION
     conditions: ExperimentalConditions = field(default_factory=ExperimentalConditions)
     shifts: List[ShiftAssignment] = field(default_factory=list)
     raw_file_urls: List[str] = field(default_factory=list)

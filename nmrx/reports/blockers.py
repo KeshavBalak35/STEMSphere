@@ -29,7 +29,11 @@ LAYERS = {
     ),
     "provider_rights": (
         "the data provider's licence or terms",
-        "obtain the licence, account or written permission before any request",
+        "read the licence on the exact data release and record it verbatim",
+    ),
+    "provider_credentials": (
+        "the data provider's account or licence gate",
+        "obtain the key, account or agreement before any request",
     ),
     "provider_prohibition": (
         "the data provider's own no-robots policy",
@@ -131,7 +135,7 @@ def from_policy(policy: AccessPolicy, registry: SourceRegistry) -> List[Blocker]
             out.append(Blocker(
                 source_id=source.id,
                 host=(source.hosts("api") or source.hosts("web") or [None])[0],
-                layer="provider_rights",
+                layer="provider_credentials",
                 what_failed="access without credentials or a licence",
                 observed=blocker,
                 action=(
@@ -142,17 +146,33 @@ def from_policy(policy: AccessPolicy, registry: SourceRegistry) -> List[Blocker]
             ))
 
     for source in registry:
-        if source.rights_status in ("unverified", "open_unverified") and source.has_nmr:
-            evidence = source.raw["rights"].get("evidence_link") or "the provider's licence page"
-            out.append(Blocker(
-                source_id=source.id,
-                host=None,
-                layer="provider_rights",
-                what_failed="establishing reuse rights",
-                observed=f"rights.status is {source.rights_status}; licence text not confirmed",
-                action=f"Read {evidence} on the exact data release and record the licence verbatim.",
-                blocks=["calibration export (CAL-008)", "redistribution"],
-            ))
+        # Every source whose rights are not established at the SOURCE level, not just the
+        # "unverified" ones: a per_record source has settled nothing either, and omitting
+        # nmrXiv and Chemotion here would contradict the report that names them.
+        if source.rights_established or not source.has_nmr:
+            continue
+        if source.rights_status in ("non_commercial", "licensed_required"):
+            # Terms known, just restrictive. That is a licence gate, reported above, not an
+            # unread licence -- calling it "not established" would misdescribe it.
+            continue
+        evidence = source.raw["rights"].get("evidence_link") or "the provider's licence page"
+        if source.rights_per_record:
+            observed = ("rights are per record; the source-level licence settles nothing and "
+                        "each record's own licence must be read and stored")
+            action = (f"Confirm via {evidence} which field carries the per-record licence, "
+                      "then gate ingestion on it record by record.")
+        else:
+            observed = f"rights.status is {source.rights_status}; licence text not confirmed"
+            action = f"Read {evidence} on the exact data release and record the licence verbatim."
+        out.append(Blocker(
+            source_id=source.id,
+            host=None,
+            layer="provider_rights",
+            what_failed="establishing reuse rights",
+            observed=observed,
+            action=action,
+            blocks=["calibration export (CAL-008)", "redistribution"],
+        ))
 
     return out
 
@@ -204,6 +224,8 @@ def render_text(report: dict) -> str:
         lines.append("")
     rights = [b for b in report["rights_and_policy_blockers"]
               if b["layer"] == "provider_rights"]
+    credentials = [b for b in report["rights_and_policy_blockers"]
+                   if b["layer"] == "provider_credentials"]
     prohibited = [b for b in report["rights_and_policy_blockers"]
                   if b["layer"] == "provider_prohibition"]
     if prohibited:
@@ -211,8 +233,14 @@ def render_text(report: dict) -> str:
         for b in prohibited:
             lines.append(f"  {b['source_id']} ({b['host']}): {b['observed']}")
         lines.append("")
+    if credentials:
+        lines.append(f"NEEDS AN ACCOUNT, KEY OR LICENCE BEFORE ANY REQUEST ({len(credentials)}):")
+        lines.append("  (an access gate, which is a different problem from the rights below)")
+        for b in credentials:
+            lines.append(f"  {b['source_id']:<18} {b['observed']}")
+        lines.append("")
     if rights:
         lines.append(f"RIGHTS NOT ESTABLISHED ({len(rights)}):")
         for b in rights:
-            lines.append(f"  {b['source_id']:<18} {b['observed']}")
+            lines.append(f"  {b['source_id']:<18} {b['observed'][:92]}")
     return "\n".join(lines)

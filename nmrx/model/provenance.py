@@ -39,6 +39,13 @@ class EvidenceClass(str, Enum):
     QUANTUM_CALCULATED = "quantum_calculated"
     MODEL_PREDICTED = "model_predicted"
     LITERATURE_EXTRACTED = "literature_extracted"
+    #: The source did not say how the number was produced.
+    #:
+    #: This is the DEFAULT, deliberately. nmrshiftdb2 mixes calculated with measured spectra
+    #: and BMRB mixes experimental with theoretical entries, so assuming "measured" when a
+    #: payload is silent would quietly feed calculated values into an experimental
+    #: calibration set -- the single worst failure this package can have.
+    UNKNOWN = "unknown"
 
     @property
     def is_experimental(self) -> bool:
@@ -69,10 +76,18 @@ class Lineage(str, Enum):
     ORIGINAL_EXPERIMENT = "original_experiment"
     MIRRORED_COPY = "mirrored_copy"
     REPROCESSED_VERSION = "reprocessed_version"
+    #: The source did not say whether this is the experiment or a copy of it.
+    #:
+    #: The DEFAULT. Assuming "original" would let an aggregator's imported row count as
+    #: independent corroboration of the experiment it copied.
+    UNKNOWN = "unknown"
 
     @property
     def is_independent_evidence(self) -> bool:
-        """A mirror of one experiment is not a second supporting result."""
+        """A mirror of one experiment is not a second supporting result.
+
+        Neither is a record whose lineage nobody established.
+        """
         return self is Lineage.ORIGINAL_EXPERIMENT
 
 

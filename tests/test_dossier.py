@@ -7,6 +7,7 @@ from nmrx.model.provenance import (
     EvidenceClass,
     FieldStatus,
     IdentityMatch,
+    Lineage,
     SpectrumState,
 )
 from nmrx.model.records import (
@@ -28,7 +29,8 @@ def record(identity_match=IdentityMatch.EXACT, complete=True, source_id="nmrshif
     return NMRRecord(
         molecule=MoleculeIdentity(inchikey=KEY, atom_count=2),
         source=SourceRef(source_id=source_id, record_id="r1",
-                         licence="CC BY 4.0" if complete else None),
+                         licence="CC BY 4.0" if complete else None,
+                         lineage=Lineage.ORIGINAL_EXPERIMENT),
         nucleus="13C",
         evidence_class=EvidenceClass.MEASURED,
         spectrum_state=SpectrumState.ASSIGNED_PEAKS,
@@ -110,11 +112,11 @@ class TestCalibrationVisibility(unittest.TestCase):
         self.assertIn("solvent", missing)
 
     def test_mirrored_copies_do_not_inflate_support(self):
-        from nmrx.model.provenance import Lineage
         original = record()
         mirror = record(source_id="mona")
         mirror.source = SourceRef(source_id="mona", record_id="m", licence="CC BY 4.0",
-                                  lineage=Lineage.MIRRORED_COPY, original_source_id="nmrshiftdb2")
+                                  lineage=Lineage.MIRRORED_COPY,
+                                  original_source_id="nmrshiftdb2")
         dossier = build(SUBMITTED, [original, mirror])
         evidence = dossier.section("measured_nmr_exact").evidence[0]
         self.assertEqual(evidence["independent_support_count"], 1)

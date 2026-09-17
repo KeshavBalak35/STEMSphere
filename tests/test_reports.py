@@ -21,7 +21,8 @@ KEY = "BSYNRYMUTXBXSQ-UHFFFAOYSA-N"
 def _complete():
     return NMRRecord(
         molecule=MoleculeIdentity(inchikey=KEY, atom_count=2),
-        source=SourceRef(source_id="nmrshiftdb2", record_id="1", licence="CC BY-SA 3.0"),
+        source=SourceRef(source_id="nmrshiftdb2", record_id="1", licence="CC BY-SA 3.0",
+                         lineage=Lineage.ORIGINAL_EXPERIMENT),
         nucleus="13C",
         evidence_class=EvidenceClass.MEASURED,
         spectrum_state=SpectrumState.ASSIGNED_PEAKS,

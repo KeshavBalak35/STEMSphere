@@ -3,7 +3,7 @@
 import unittest
 
 from nmrx.model.dedup import cluster_records, dedup_summary, experiment_key
-from nmrx.model.provenance import Lineage
+from nmrx.model.provenance import EvidenceClass, Lineage
 from nmrx.model.records import (
     ExperimentalConditions,
     MoleculeIdentity,
@@ -24,6 +24,7 @@ def rec(source_id, *, lineage=Lineage.ORIGINAL_EXPERIMENT, original=None,
         source=SourceRef(source_id=source_id, record_id=f"{source_id}-1", licence=licence,
                          lineage=lineage, original_source_id=original),
         nucleus="13C",
+        evidence_class=EvidenceClass.MEASURED,
         conditions=CONDITIONS,
         shifts=list(shifts if shifts is not None else SHIFTS),
     )

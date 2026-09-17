@@ -113,8 +113,23 @@ class TestMappingProducesRecords(unittest.TestCase):
         self.assertIs(self.records[0].spectrum_state, SpectrumState.ASSIGNED_PEAKS)
         self.assertIs(self.records[1].spectrum_state, SpectrumState.UNASSIGNED_PEAKS)
 
-    def test_lineage_defaults_to_the_original_experiment(self):
-        self.assertIs(self.records[0].source.lineage, Lineage.ORIGINAL_EXPERIMENT)
+    def test_unstated_provenance_defaults_to_unknown_not_to_the_best_case(self):
+        """A payload that says nothing must not be read as saying "measured, original, related".
+
+        nmrshiftdb2 mixes calculated with measured spectra and aggregators re-serve other
+        people's experiments, so the favourable default is the dangerous one.
+        """
+        from nmrx.model.provenance import EvidenceClass, IdentityMatch
+        rec = self.records[0]
+        self.assertIs(rec.source.lineage, Lineage.UNKNOWN)
+        self.assertIs(rec.evidence_class, EvidenceClass.UNKNOWN)
+        self.assertIs(rec.identity_match, IdentityMatch.UNKNOWN_RELATION)
+
+    def test_an_explicitly_mapped_lineage_is_honoured(self):
+        plan = _plan()
+        plan.record_mapping["source"]["lineage"] = {"const": "original_experiment"}
+        self.assertIs(map_payload(_payload(), plan)[0].source.lineage,
+                      Lineage.ORIGINAL_EXPERIMENT)
 
 
 class TestAbsentFieldsStayUnknown(unittest.TestCase):
@@ -180,3 +195,18 @@ class TestPlanLoading(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestPlansDoNotShareState(unittest.TestCase):
+    def test_editing_a_loaded_plan_does_not_mutate_its_source_document(self):
+        """record_mapping is nested; a shallow copy left plans aliasing their source."""
+        source = json.loads(json.dumps(PLAN))
+        plan = AdapterPlan.from_dict(source)
+        plan.record_mapping["source"]["lineage"] = {"const": "mirrored_copy"}
+        self.assertNotIn("lineage", source["record_mapping"]["source"])
+
+    def test_two_plans_from_one_document_are_independent(self):
+        a = AdapterPlan.from_dict(PLAN)
+        b = AdapterPlan.from_dict(PLAN)
+        a.record_mapping["nucleus"] = {"const": "1H"}
+        self.assertNotEqual(a.record_mapping.get("nucleus"), b.record_mapping.get("nucleus"))

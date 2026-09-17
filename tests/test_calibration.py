@@ -24,7 +24,8 @@ def good_record(**overrides) -> NMRRecord:
     """A record that passes every rule. Tests break exactly one thing at a time."""
     base = dict(
         molecule=MoleculeIdentity(inchikey=KEY, atom_count=4),
-        source=SourceRef(source_id="nmrshiftdb2", record_id="42", licence="CC BY-SA 3.0"),
+        source=SourceRef(source_id="nmrshiftdb2", record_id="42", licence="CC BY-SA 3.0",
+                         lineage=Lineage.ORIGINAL_EXPERIMENT),
         nucleus="13C",
         evidence_class=EvidenceClass.MEASURED,
         spectrum_state=SpectrumState.ASSIGNED_PEAKS,
@@ -100,7 +101,8 @@ class TestEachRuleRejects(unittest.TestCase):
         self.assert_rejected_by("CAL-007", good_record(shifts=shifts))
 
     def test_cal008_unknown_licence_is_rejected(self):
-        ref = SourceRef(source_id="nmrshiftdb2", record_id="42")   # licence UNKNOWN
+        ref = SourceRef(source_id="nmrshiftdb2", record_id="42",
+                        lineage=Lineage.ORIGINAL_EXPERIMENT)   # licence UNKNOWN
         self.assert_rejected_by("CAL-008", good_record(source=ref))
 
     def test_cal009_missing_inchikey_is_rejected(self):

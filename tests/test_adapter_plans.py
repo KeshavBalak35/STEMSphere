@@ -9,7 +9,9 @@ from nmrx.sources.policy import load_policy
 from nmrx.sources.registry import load_registry
 
 PLAN_IDS = available_plans()
-UPLOADS = Path("/root/.claude/uploads/8e17b3ed-5e1d-510c-b487-8bd3f4a0e311")
+RESEARCH_URLS = set(json.loads(
+    (Path(__file__).resolve().parent.parent / "nmrx" / "data" / "research_urls.json").read_text()
+)["urls"])
 
 
 class TestPlansExist(unittest.TestCase):
@@ -63,22 +65,16 @@ class TestRouteProvenance(unittest.TestCase):
                         self.assertTrue(route.must_confirm_live)
 
     def test_documented_route_urls_appear_in_the_research_material(self):
-        """A 'documented' URL must be traceable, not composed."""
-        corpus = ""
-        for name in ("958a19a8-NMRx_Chemical_Source_Registry.json",
-                     "18abb5f3-NMRx_Chemical_Database_Map.md"):
-            path = UPLOADS / name
-            if path.exists():
-                corpus += path.read_text()
-        if not corpus:
-            self.skipTest("research material not available in this environment")
+        """A 'documented' URL must be traceable, not composed.
 
+        Checked against the committed URL list, so this cannot degrade into a skip.
+        """
         invented = []
         for source_id in PLAN_IDS:
             for route in AdapterPlan.load(source_id).routes:
                 if route.provenance != "documented":
                     continue
-                if route.url_template.rstrip("/") not in corpus:
+                if route.url_template.rstrip("/") not in RESEARCH_URLS:
                     invented.append((source_id, route.url_template))
         self.assertEqual(invented, [], f"documented routes not traceable to the research: {invented}")
 

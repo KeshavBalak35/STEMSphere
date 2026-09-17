@@ -81,6 +81,13 @@ Rule = Callable[[NMRRecord], Optional[Rejection]]
 # Ordered weakest-precondition first so the rejection list reads top-down.
 
 def _cal_001_measured(rec: NMRRecord) -> Optional[Rejection]:
+    if rec.evidence_class is EvidenceClass.UNKNOWN:
+        return Rejection(
+            "CAL-001",
+            "evidence class unknown",
+            "the source did not state whether this value was measured or calculated; "
+            "nmrshiftdb2 and BMRB both carry a mix, so it must not be assumed",
+        )
     if rec.evidence_class is not EvidenceClass.MEASURED:
         return Rejection(
             "CAL-001",
