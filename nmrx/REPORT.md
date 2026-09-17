@@ -104,10 +104,21 @@ Rights posture across all 50:
 | Licence, account or paid agreement required | 7 |
 | Automated harvesting prohibited by the provider | 1 (SDBS) |
 
-A consequence worth stating separately: 39 sources carry no provider-side prohibition, but
-only **18** also have an established licence. The difference is not a technicality — a source
-nobody has read the licence for is not usable just because no one forbade it, and its records
-fail the calibration gate at CAL-008 anyway.
+A consequence worth stating separately, because it is the sharpest number in this report.
+39 sources carry no provider-side prohibition. But splitting that 39 by what the rights
+actually say:
+
+| | Count |
+|---|---|
+| Source-level open licence documented | **4** (ChEBI, COD, re3data, DataCite) |
+| Usable only with a licence check on **every individual record** | 14 |
+| Licence not established at all | 21 |
+
+"No provider forbade it" is not permission. A source whose terms vary record by record has
+settled nothing at the source level — MassBank's mandatory LICENSE field can read CC0 on one
+record and non-commercial on the next — so it needs per-record gating in the ingestion code,
+not a source-level judgement. And a source nobody has read the licence for fails the
+calibration gate at CAL-008 regardless.
 
 So **20 of 50** sources have rights the research could not establish — and that set includes
 all four of the NMR priority sources. This is the largest single obstacle in the whole map, and
@@ -218,7 +229,7 @@ parameter name, no response schema.
 
 ## 8. Verification
 
-258 offline tests pass: `python3 -m unittest discover -s tests -t .`
+259 offline tests pass: `python3 -m unittest discover -s tests -t .`
 
 Standard library only. Among the checks that keep this report honest:
 

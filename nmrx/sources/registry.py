@@ -137,8 +137,19 @@ class Source:
 
     @property
     def rights_established(self) -> bool:
-        """True only when documentation actually names a licence for this source."""
-        return self.rights_status in ("open_documented", "per_record")
+        """True only when documentation names a licence for the SOURCE as a whole.
+
+        ``per_record`` deliberately does not count. A source whose terms vary record by record
+        has settled nothing at the source level -- MassBank's mandatory LICENSE field can say
+        CC0 on one record and non-commercial on the next -- so it cannot be harvested on the
+        strength of a source-level judgement. See :attr:`rights_per_record`.
+        """
+        return self.rights_status == "open_documented"
+
+    @property
+    def rights_per_record(self) -> bool:
+        """Usable, but only with a per-record licence check on every record ingested."""
+        return self.rights_status == "per_record"
 
     @property
     def has_nmr(self) -> bool:
@@ -248,14 +259,23 @@ class SourceRegistry:
         return [s for s in self._sources if s.harvest_policy == "allowed_when_unblocked"]
 
     def harvestable(self) -> List[Source]:
-        """Sources that may actually be harvested once the network opens.
+        """Sources harvestable on a source-level licence, once the network opens.
 
-        Deliberately stricter than the ``harvest_policy`` field alone. A source whose licence
-        nobody has read is not harvestable just because no provider forbade it: its records
-        would fail the calibration gate at CAL-008, and redistributing them would rest on an
-        assumption rather than a licence.
+        Deliberately much stricter than the ``harvest_policy`` field alone. A source whose
+        licence nobody has read is not harvestable just because no provider forbade it: its
+        records would fail the calibration gate at CAL-008, and redistributing them would rest
+        on an assumption rather than a licence.
         """
         return [s for s in self.harvest_policy_allows() if s.rights_established]
+
+    def harvestable_per_record(self) -> List[Source]:
+        """Sources harvestable only with a licence check on every individual record.
+
+        Kept separate from :meth:`harvestable` because the ingestion code has to behave
+        differently: it must read and store each record's own licence, and must not pool these
+        records with differently-licensed ones in a redistributed table.
+        """
+        return [s for s in self.harvest_policy_allows() if s.rights_per_record]
 
     def rights_unestablished(self) -> List[Source]:
         """Sources whose licence documentation did not settle the question."""
@@ -335,7 +355,8 @@ class SourceRegistry:
             "by_rights_status": dict(Counter(s.rights_status for s in self._sources)),
             "by_harvest_policy": dict(Counter(s.harvest_policy for s in self._sources)),
             "harvest_policy_allows": len(self.harvest_policy_allows()),
-            "harvestable_with_rights": len(self.harvestable()),
+            "harvestable_source_level_licence": len(self.harvestable()),
+            "harvestable_per_record_check": len(self.harvestable_per_record()),
             "rights_unestablished": len(self.rights_unestablished()),
             "share_alike_sources": sum(1 for s in self._sources if s.has_share_alike),
             "nmr_sources": len(self.nmr_sources()),

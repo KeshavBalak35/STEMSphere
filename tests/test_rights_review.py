@@ -44,18 +44,26 @@ class TestRegistryDoesNotOverstateRights(unittest.TestCase):
             with self.subTest(source=sid):
                 self.assertNotEqual(self.registry[sid].commercial_use, "yes")
 
-    def test_licence_required_sources_never_claim_open_verified_rights(self):
+    def test_licence_required_sources_are_not_marked_plainly_open(self):
+        """"open_documented" means documentation names an open licence. These do not."""
         for sid in self.buckets["licence_or_account_required"]:
             with self.subTest(source=sid):
-                self.assertNotEqual(self.registry[sid].rights_status, "open_verified")
+                self.assertNotEqual(self.registry[sid].rights_status, "open_documented")
 
-    def test_unverified_sources_never_claim_open_verified_rights(self):
+    def test_unverified_sources_are_not_marked_plainly_open(self):
         for sid in self.buckets["rights_unverified"]:
             with self.subTest(source=sid):
                 self.assertNotEqual(
-                    self.registry[sid].rights_status, "open_verified",
+                    self.registry[sid].rights_status, "open_documented",
                     "the review could not establish this licence; the registry must not settle it",
                 )
+
+    def test_unverified_sources_are_not_treated_as_harvestable(self):
+        """The strict check: an unread licence keeps a source out of the harvestable set."""
+        harvestable = {s.id for s in self.registry.harvestable()}
+        for sid in self.buckets["rights_unverified"]:
+            with self.subTest(source=sid):
+                self.assertNotIn(sid, harvestable)
 
     def test_prohibited_sources_are_prohibited_in_the_registry(self):
         for sid in self.buckets["harvesting_prohibited"]:

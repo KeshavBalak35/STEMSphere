@@ -78,6 +78,8 @@ def source_coverage(registry: SourceRegistry) -> dict:
             "conditions_yes": bucket([s for s in nmr if s.conditions == "yes"]),
         },
         "harvestable_now_if_network_opened": bucket(registry.harvestable()),
+        "harvestable_with_per_record_licence_check": bucket(registry.harvestable_per_record()),
+        "no_provider_prohibition": bucket(registry.harvest_policy_allows()),
         "needs_credentials": bucket([s for s in registry if s.needs_credentials()]),
         "prohibited": bucket([s for s in registry if s.harvest_policy == "prohibited"]),
     }
@@ -174,7 +176,11 @@ def render_text(coverage: dict, missingness: Optional[dict] = None) -> str:
                  f"{nmr['measured_nmr']['count']} carry measured evidence")
     lines.append("  measured + assignments + conditions: "
                  + (", ".join(nmr["measured_with_assignments_and_conditions"]["ids"]) or "none"))
-    lines.append(f"Harvestable if network opened: {coverage['harvestable_now_if_network_opened']['count']}")
+    lines.append(f"No provider prohibition: {coverage['no_provider_prohibition']['count']}")
+    lines.append(f"  ...of which harvestable on a source-level licence: "
+                 f"{coverage['harvestable_now_if_network_opened']['count']}")
+    lines.append(f"  ...of which need a per-record licence check: "
+                 f"{coverage['harvestable_with_per_record_licence_check']['count']}")
     lines.append(f"Needs credentials: {coverage['needs_credentials']['count']}  |  "
                  f"Harvesting prohibited: {coverage['prohibited']['count']}")
     if missingness:
