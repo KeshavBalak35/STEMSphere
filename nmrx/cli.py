@@ -12,6 +12,8 @@ import sys
 from typing import List, Optional
 
 from .model.calibration import rule_catalogue
+from .reports.blockers import build as build_blockers
+from .reports.blockers import render_text as render_blockers
 from .reports.coverage import render_text as render_coverage
 from .reports.coverage import source_coverage
 from .sources.policy import load_policy
@@ -95,6 +97,15 @@ def _cmd_coverage(args) -> int:
     return 0
 
 
+def _cmd_blockers(args) -> int:
+    report = build_blockers()
+    if args.json:
+        print(json.dumps(report, indent=2))
+        return 0
+    print(render_blockers(report))
+    return 0
+
+
 def _cmd_rules(args) -> int:
     print("Strict NMR calibration gate -- a record must pass every rule:\n")
     for rule in rule_catalogue():
@@ -128,6 +139,10 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("coverage", help="source coverage and NMR completeness")
     p.add_argument("--json", action="store_true")
     p.set_defaults(func=_cmd_coverage)
+
+    p = sub.add_parser("blockers", help="what is blocking each source, and who can fix it")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(func=_cmd_blockers)
 
     p = sub.add_parser("rules", help="explain the calibration eligibility rules")
     p.set_defaults(func=_cmd_rules)
