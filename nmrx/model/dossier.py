@@ -81,14 +81,70 @@ class MoleculeDossier:
         }
 
 
-def _split_by_identity(records: Sequence[NMRRecord]) -> tuple:
-    """Exact-molecule records and related-structure records, never mixed."""
-    exact = [r for r in records if r.identity_match is IdentityMatch.EXACT]
-    related = [r for r in records if r.identity_match is not IdentityMatch.EXACT]
-    return exact, related
+@dataclass(frozen=True)
+class IdentityVerdict:
+    """The result of *computing* how one record relates to the submitted molecule."""
+
+    record: NMRRecord
+    computed: IdentityMatch
+    claimed: IdentityMatch
+    #: True when the record asserted a relationship the structures do not support.
+    disagrees: bool
+
+    @property
+    def is_exact(self) -> bool:
+        return self.computed is IdentityMatch.EXACT
+
+    @property
+    def is_verifiable(self) -> bool:
+        return self.computed is not IdentityMatch.UNKNOWN_RELATION
 
 
-def _cluster_evidence(clusters: Sequence[ExperimentCluster]) -> List[dict]:
+def classify_identity(submitted: MoleculeIdentity,
+                      records: Sequence[NMRRecord]) -> List[IdentityVerdict]:
+    """Compute each record's relationship to the submitted molecule.
+
+    The record's own ``identity_match`` is treated as a *claim*, not as the answer. It
+    arrives from an adapter mapping whose schema nobody has confirmed, so a source (or a
+    mapping bug) asserting "exact" must not be enough to place a spectrum in the exact
+    bucket of a dossier. The structures are compared here and the computed verdict wins;
+    a disagreement is recorded so it is visible rather than silently overridden.
+    """
+    out: List[IdentityVerdict] = []
+    for rec in records:
+        computed = submitted.compare(rec.molecule)
+        claimed = rec.identity_match
+        # A claim only "disagrees" when both sides actually say something.
+        disagrees = (
+            computed is not claimed
+            and computed is not IdentityMatch.UNKNOWN_RELATION
+            and claimed is not IdentityMatch.UNKNOWN_RELATION
+        )
+        out.append(IdentityVerdict(record=rec, computed=computed,
+                                   claimed=claimed, disagrees=disagrees))
+    return out
+
+
+def _split_by_identity(submitted: MoleculeIdentity,
+                       records: Sequence[NMRRecord]) -> tuple:
+    """Exact / related / unverifiable, decided by comparing structures.
+
+    Three buckets, not two. A record whose identity cannot be computed -- because the
+    submitted molecule or the record itself carries no InChIKey -- is neither exact nor
+    related. Filing it under "related" would assert a relationship nobody established.
+    """
+    verdicts = classify_identity(submitted, records)
+    exact = [v.record for v in verdicts if v.is_exact]
+    related = [v.record for v in verdicts
+               if not v.is_exact and v.is_verifiable and v.computed.is_related]
+    unrelated = [v.record for v in verdicts if v.computed is IdentityMatch.UNRELATED]
+    unverifiable = [v.record for v in verdicts if not v.is_verifiable]
+    disagreements = [v for v in verdicts if v.disagrees]
+    return exact, related, unrelated, unverifiable, disagreements
+
+
+def _cluster_evidence(clusters: Sequence[ExperimentCluster],
+                      computed_by_record: Optional[dict] = None) -> List[dict]:
     """Render clusters as dossier evidence.
 
     Clusters whose primary record the gate marked *not* discovery-usable are dropped
@@ -109,7 +165,9 @@ def _cluster_evidence(clusters: Sequence[ExperimentCluster]) -> List[dict]:
             "nucleus": _plain(unwrap(primary.nucleus)),
             "evidence_class": primary.evidence_class.value,
             "spectrum_state": primary.spectrum_state.value,
-            "identity_match": primary.identity_match.value,
+            "identity_match_claimed_by_source": primary.identity_match.value,
+            "identity_match_computed": (computed_by_record or {}).get(
+                id(primary), primary.identity_match).value,
             "licence": _plain(unwrap(primary.source.licence)),
             "independent_support_count": c.independent_support_count(),
             "calibration_eligible": verdict.eligible,
@@ -134,7 +192,11 @@ def build_nmr_sections(
     records = list(records)
     sections: List[Section] = []
 
-    exact, related = _split_by_identity(records)
+    exact, related, unrelated, unverifiable, disagreements = _split_by_identity(
+        submitted, records)
+    computed_by_record = {
+        id(v.record): v.computed for v in classify_identity(submitted, records)
+    }
     exact_clusters = cluster_records(exact)
     related_clusters = cluster_records(related)
 
@@ -147,7 +209,7 @@ def build_nmr_sections(
             status=FieldStatus.FOUND,
             detail=(f"{len(eligible)} calibration-eligible experiment(s) on the exact "
                     f"molecule, from {len(exact_clusters)} distinct experiment(s)."),
-            evidence=_cluster_evidence(eligible),
+            evidence=_cluster_evidence(eligible, computed_by_record),
         ))
     elif exact_clusters:
         sections.append(Section(
@@ -155,7 +217,7 @@ def build_nmr_sections(
             status=FieldStatus.FOUND,
             detail=("Spectra found on the exact molecule, but none passed the strict "
                     "calibration gate. Shown as discovery context only."),
-            evidence=_cluster_evidence(exact_clusters),
+            evidence=_cluster_evidence(exact_clusters, computed_by_record),
         ))
     elif blocked_sources:
         sections.append(Section(
@@ -179,13 +241,54 @@ def build_nmr_sections(
             detail=("Spectra for related structures (different salt, tautomer, isotope, "
                     "stereochemistry or connectivity-only match). These can inform a "
                     "comparison but are NOT measurements of the submitted molecule."),
-            evidence=_cluster_evidence(related_clusters),
+            evidence=_cluster_evidence(related_clusters, computed_by_record),
         ))
     else:
         sections.append(Section(
             name="related_structure_nmr",
             status=FieldStatus.NOT_FOUND,
             detail="No related-structure spectra retrieved.",
+        ))
+
+    # -- records whose identity could not be established ----------------------
+    if unverifiable:
+        sections.append(Section(
+            name="identity_unverifiable",
+            status=FieldStatus.NOT_FOUND,
+            detail=(f"{len(unverifiable)} record(s) could not be compared to the submitted "
+                    "molecule because one side carries no InChIKey. They are excluded from "
+                    "both the exact and the related sections: filing them as 'related' "
+                    "would assert a relationship nobody established."),
+            evidence=[{"source_id": r.source.source_id,
+                       "record_id": _plain(unwrap(r.source.record_id))}
+                      for r in unverifiable],
+        ))
+
+    # -- records that are simply a different compound -------------------------
+    if unrelated:
+        sections.append(Section(
+            name="identity_unrelated",
+            status=FieldStatus.NOT_FOUND,
+            detail=(f"{len(unrelated)} retrieved record(s) are a different compound from the "
+                    "submitted molecule and are not shown as evidence for it."),
+            evidence=[{"source_id": r.source.source_id,
+                       "record_id": _plain(unwrap(r.source.record_id))}
+                      for r in unrelated],
+        ))
+
+    # -- claims the structures do not support ---------------------------------
+    if disagreements:
+        sections.append(Section(
+            name="identity_claims_rejected",
+            status=FieldStatus.NOT_FOUND,
+            detail=(f"{len(disagreements)} record(s) asserted an identity relationship the "
+                    "structures do not support. The computed comparison was used instead. "
+                    "A source or mapping claiming 'exact' is a claim, not a verification."),
+            evidence=[{"source_id": v.record.source.source_id,
+                       "record_id": _plain(unwrap(v.record.source.record_id)),
+                       "claimed": v.claimed.value,
+                       "computed": v.computed.value}
+                      for v in disagreements],
         ))
 
     # -- what we could not consult --------------------------------------------

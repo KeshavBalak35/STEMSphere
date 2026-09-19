@@ -103,10 +103,36 @@ def _to_float(v: Any) -> Any:
 
 
 def _to_int(v: Any) -> Any:
-    try:
-        return int(v)
-    except (TypeError, ValueError):
+    """Total, and refuses to round.
+
+    An atom index is a pointer at a specific atom, so truncating 1.8 to 1 does not lose a
+    little precision -- it silently reassigns the shift to a different atom, and the result
+    still looks like a valid mapping. A value that is not exactly a whole number is a sign
+    the source meant something we have not understood, so it yields UNKNOWN and the peak
+    stays unassigned.
+
+    ``bool`` is rejected outright: ``int(True)`` is 1, which would turn a flag into atom 1.
+    """
+    if isinstance(v, bool):
         return UNKNOWN
+    if isinstance(v, int):
+        return v
+    if isinstance(v, float):
+        if not math.isfinite(v) or not v.is_integer():
+            return UNKNOWN
+        return int(v)
+    if isinstance(v, str):
+        text = v.strip()
+        try:
+            return int(text)                      # plain "3"
+        except (TypeError, ValueError):
+            pass
+        try:
+            f = float(text)                       # "3.0" is fine, "1.8" is not
+        except (TypeError, ValueError):
+            return UNKNOWN
+        return int(f) if math.isfinite(f) and f.is_integer() else UNKNOWN
+    return UNKNOWN
 
 
 def _celsius_to_kelvin(v: Any) -> Any:

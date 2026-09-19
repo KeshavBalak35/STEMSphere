@@ -377,3 +377,156 @@ class TestCliFailsReadably(unittest.TestCase):
                 code = main(["registry"])
         self.assertEqual(code, 2)
         self.assertIn("not found", err.getvalue())
+
+
+class TestAtomIndexIsNeverRounded(unittest.TestCase):
+    """An atom index points at a specific atom; rounding it silently repoints the shift."""
+
+    def setUp(self):
+        from nmrx.adapters.base import _to_int
+        self.to_int = _to_int
+
+    def test_a_non_integral_value_yields_unknown_not_a_truncation(self):
+        from nmrx.model.provenance import UNKNOWN
+        for v in (1.8, "1.8", -0.6, "-0.6", 2.5, "2.5"):
+            with self.subTest(v=v):
+                self.assertIs(self.to_int(v), UNKNOWN,
+                              f"{v!r} must not silently become an atom index")
+
+    def test_an_exactly_integral_value_is_accepted(self):
+        for v, expected in ((2.0, 2), ("2.0", 2), (3, 3), ("3", 3), (" 4 ", 4), ("-2", -2)):
+            with self.subTest(v=v):
+                self.assertEqual(self.to_int(v), expected)
+
+    def test_the_transform_is_total(self):
+        """It must never raise -- infinity used to escape as OverflowError."""
+        from nmrx.model.provenance import UNKNOWN
+        for v in (float("inf"), float("-inf"), float("nan"), "abc", "", None, [], {}, object()):
+            with self.subTest(v=type(v).__name__):
+                self.assertIs(self.to_int(v), UNKNOWN)
+
+    def test_a_boolean_is_not_an_atom_index(self):
+        """int(True) is 1, which would turn a flag into a pointer at atom 1."""
+        from nmrx.model.provenance import UNKNOWN
+        self.assertIs(self.to_int(True), UNKNOWN)
+        self.assertIs(self.to_int(False), UNKNOWN)
+
+    def test_a_rounded_index_does_not_reach_a_parsed_record(self):
+        from nmrx.adapters.base import AdapterPlan, map_payload
+        plan = AdapterPlan.from_dict({
+            "source_id": "nmrshiftdb2", "schema_confirmed": False,
+            "record_mapping": {"records_path": "", "shifts": {
+                "path": "peaks", "shift_ppm": {"path": "ppm", "transform": "float"},
+                "element": {"path": "el"}, "atom_index": {"path": "atom", "transform": "int"}}},
+        })
+        rec = map_payload({"peaks": [{"el": "C", "ppm": 10.0, "atom": 1.8},
+                                     {"el": "C", "ppm": 20.0, "atom": 2}]}, plan)[0]
+        self.assertEqual([s.atom_index for s in rec.shifts], [None, 2],
+                         "a 1.8 index must leave the peak unassigned, not point it at atom 1")
+
+
+class TestRedirectLocationIsRedactedAndDescribedHonestly(unittest.TestCase):
+    def _probe(self, location):
+        class _H(dict):
+            def get(self, k, d=None):
+                return location if k == "Location" else d
+
+        err = urllib.error.HTTPError("https://pubchem.ncbi.nlm.nih.gov/x", 302, "Found",
+                                     _H(), None)
+
+        class _O:
+            def open(self, req, timeout=None):
+                raise err
+
+        client = BoundedHttpClient(load_policy(), opener_factory=lambda: _O(), clock=lambda: 0.0)
+        client.budget.caps.min_seconds_between_requests_per_host = 0.0
+        attempt = client.get("https://pubchem.ncbi.nlm.nih.gov/x", source_id="pubchem",
+                             purpose="t")
+        return attempt, client
+
+    def test_credentials_in_a_redirect_target_are_redacted(self):
+        """Redacting the request URL and then printing the redirect's is pointless."""
+        attempt, client = self._probe("https://user:SECRET@evil.example/y")
+        self.assertNotIn("SECRET", attempt.error)
+        self.assertNotIn("SECRET", json.dumps(client.log.to_dict()))
+        self.assertIn("***@evil.example", attempt.error)
+
+    def test_a_different_host_is_described_as_a_grant_problem(self):
+        attempt, _ = self._probe("https://downloads.sourceforge.net/y")
+        self.assertIn("target host must be granted separately", attempt.error)
+
+    def test_a_same_host_redirect_is_not_blamed_on_the_grant(self):
+        """Saying "grant the host" when the host is already granted sends the wrong fix."""
+        attempt, _ = self._probe("https://pubchem.ncbi.nlm.nih.gov/y")
+        self.assertNotIn("target host must be granted separately", attempt.error)
+        self.assertIn("same host", attempt.error)
+
+    def test_a_relative_location_is_described_as_relative(self):
+        attempt, _ = self._probe("/y")
+        self.assertIn("relative or unparseable", attempt.error)
+
+
+class TestIdentityIsComputedNotTrusted(unittest.TestCase):
+    """A record asserting "exact" is a claim. The structures decide."""
+
+    SUBMITTED = MoleculeIdentity(inchikey=KEY_A, atom_count=2)
+    SAME_SKELETON = "AAAAAAAAAAAAAA-ZZZZZZZZZZ-N"
+
+    def _rec(self, key, claimed):
+        from nmrx.model.provenance import EvidenceClass
+        return NMRRecord(
+            molecule=MoleculeIdentity(inchikey=key, atom_count=2),
+            source=SourceRef(source_id="s", record_id="r", licence="CC BY 4.0",
+                             lineage=Lineage.ORIGINAL_EXPERIMENT),
+            nucleus="13C", evidence_class=EvidenceClass.MEASURED, identity_match=claimed,
+            shifts=[ShiftAssignment(0, "C", 10.0), ShiftAssignment(1, "C", 20.0)],
+        )
+
+    def test_a_false_exact_claim_is_overridden_by_the_computed_verdict(self):
+        from nmrx.model.dossier import classify_identity
+        verdicts = classify_identity(self.SUBMITTED,
+                                     [self._rec(KEY_B, IdentityMatch.EXACT)])
+        self.assertIs(verdicts[0].computed, IdentityMatch.UNRELATED)
+        self.assertIs(verdicts[0].claimed, IdentityMatch.EXACT)
+        self.assertTrue(verdicts[0].disagrees)
+
+    def test_a_truthful_claim_does_not_register_as_a_disagreement(self):
+        from nmrx.model.dossier import classify_identity
+        verdicts = classify_identity(self.SUBMITTED,
+                                     [self._rec(KEY_A, IdentityMatch.EXACT)])
+        self.assertIs(verdicts[0].computed, IdentityMatch.EXACT)
+        self.assertFalse(verdicts[0].disagrees)
+
+    def test_an_unpinned_record_is_not_verifiable_and_not_a_disagreement(self):
+        from nmrx.model.dossier import classify_identity
+        verdicts = classify_identity(self.SUBMITTED,
+                                     [self._rec(None, IdentityMatch.EXACT)])
+        self.assertFalse(verdicts[0].is_verifiable)
+        self.assertFalse(verdicts[0].disagrees)
+
+    def test_only_computed_exact_records_reach_the_exact_bucket(self):
+        from nmrx.model.dossier import build
+        dossier = build(self.SUBMITTED, [
+            self._rec(KEY_A, IdentityMatch.EXACT),                 # genuinely exact
+            self._rec(KEY_B, IdentityMatch.EXACT),                 # different compound
+            self._rec(self.SAME_SKELETON, IdentityMatch.EXACT),    # same skeleton only
+            self._rec(None, IdentityMatch.EXACT),                  # unpinned
+        ])
+        exact = dossier.section("measured_nmr_exact").evidence
+        self.assertEqual(len(exact), 1)
+        self.assertEqual(exact[0]["identity_match_computed"], "exact")
+
+    def test_the_dossier_reports_rejected_identity_claims(self):
+        from nmrx.model.dossier import build
+        dossier = build(self.SUBMITTED, [self._rec(KEY_B, IdentityMatch.EXACT)])
+        section = dossier.section("identity_claims_rejected")
+        self.assertIsNotNone(section)
+        self.assertEqual(section.evidence[0]["claimed"], "exact")
+        self.assertEqual(section.evidence[0]["computed"], "unrelated")
+
+    def test_evidence_shows_both_the_claim_and_the_computation(self):
+        from nmrx.model.dossier import build
+        dossier = build(self.SUBMITTED, [self._rec(KEY_A, IdentityMatch.EXACT)])
+        evidence = dossier.section("measured_nmr_exact").evidence[0]
+        self.assertIn("identity_match_claimed_by_source", evidence)
+        self.assertIn("identity_match_computed", evidence)

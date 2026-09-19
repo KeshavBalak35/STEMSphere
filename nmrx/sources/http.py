@@ -252,7 +252,24 @@ class BoundedHttpClient:
             # `is not None`, not truthiness: an HTTPMessage with no headers is falsy.
             location = exc.headers.get("Location") if exc.headers is not None else None
             if location and 300 <= exc.code < 400:
-                detail += f"; redirect to {location} not followed (target host must be granted separately)"
+                # The Location is attacker- or provider-controlled text that lands in a
+                # durable log, so it gets the same redaction as the request URL. Redacting
+                # the original and then printing credentials from the redirect target would
+                # defeat the point.
+                safe_location = redact(location)
+                try:
+                    target = urlsplit(location).hostname
+                except ValueError:
+                    target = None
+                if target is None:
+                    why = ("relative or unparseable Location; redirects are not followed "
+                           "automatically -- resolve it and request the target explicitly")
+                elif target.lower().rstrip(".") != host:
+                    why = "target host must be granted separately"
+                else:
+                    why = ("same host; redirects are not followed automatically -- request "
+                           "the target explicitly")
+                detail += f"; redirect to {safe_location} not followed ({why})"
             self.budget.record(host, 0)
             att = Attempt(url=logged_url, host=host, source_id=source_id, purpose=purpose,
                           started_at=started, outcome="http_error", status=exc.code,
