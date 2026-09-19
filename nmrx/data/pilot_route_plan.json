@@ -1,0 +1,318 @@
+{
+  "_note": "Route plan for the six granted pilot hosts. Routes marked 'inferred' are composed from documentation descriptions and are NOT confirmed. Nothing here has been executed -- every host is blocked at CONNECT.",
+  "reviewed_on": "2026-09-17",
+  "sources": [
+    {
+      "id": "pubchem",
+      "hostnames": [
+        "pubchem.ncbi.nlm.nih.gov",
+        "ftp.ncbi.nlm.nih.gov (documented bulk host \u2014 NOT in the pilot allowlist)"
+      ],
+      "routes": [
+        {
+          "purpose": "Read the PUG REST request grammar before composing any query path",
+          "url_template": "https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest",
+          "provenance": "documented",
+          "doc_link": "https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest",
+          "response_format": "HTML documentation page, not machine-readable data",
+          "must_confirm_live": "That this page still documents the input/operation/output request grammar and still states the 5-requests-per-second client limit. No part of the grammar has been read from the live page; the map only asserts that PUG REST is the documented identity/property route."
+        },
+        {
+          "purpose": "Identity and computed-descriptor lookup for one compound",
+          "url_template": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/{namespace}/{identifier}/property/{property_list}/JSON",
+          "provenance": "inferred",
+          "doc_link": "https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest",
+          "response_format": "Expected JSON containing a property table keyed by CID. The wrapper key names and nesting have NOT been observed.",
+          "must_confirm_live": "The literal path segment order; which namespace tokens are accepted (cid / name / smiles / inchikey) and their exact spelling; the exact accepted property names inside {property_list} and whether they are comma-joined; the JSON envelope key names; and the status code and body shape on a miss (404 vs 200 with a fault object). This exact URL shape was used as the project's pilot probe step and was never answered \u2014 the request was refused at CONNECT."
+        },
+        {
+          "purpose": "Resolve a structure identifier to PubChem CIDs before any property call",
+          "url_template": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/inchikey/{inchikey}/cids/JSON",
+          "provenance": "inferred",
+          "doc_link": "https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest",
+          "response_format": "Expected JSON list of integer CIDs. Not observed.",
+          "must_confirm_live": "Whether 'inchikey' is a valid namespace token; whether lookup is exact-key only or also matches the 14-character connectivity block (which would silently collapse stereoisomers, tautomers and isotopologues that NMRx must keep distinct); whether multiple CIDs can be returned for one key and in what order; and the empty-result shape."
+        },
+        {
+          "purpose": "Retrieve the source-attributed record report, including contributed experimental annotations and spectra sections",
+          "url_template": "https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/{cid}/JSON",
+          "provenance": "inferred",
+          "doc_link": "https://pubchem.ncbi.nlm.nih.gov/docs/programmatic-access",
+          "response_format": "Expected JSON record tree with nested sections carrying per-section source attribution. Section vocabulary and nesting NOT observed.",
+          "must_confirm_live": "Whether PUG View lives under a /rest/pug_view/ prefix at all; whether a section/heading filter parameter exists and what its exact name and controlled vocabulary are; whether an NMR section returns numeric peak tables or only an outbound link to a contributor site (the map warns 'not every linked spectrum is a downloadable, assigned dataset'); and the uncompressed response size against the project's 2 MiB per-response cap, since full PUG View records for well-studied compounds may exceed it."
+        },
+        {
+          "purpose": "Establish per-contributor download rights and which datasets may not be bulk downloaded",
+          "url_template": "https://pubchem.ncbi.nlm.nih.gov/docs/downloads",
+          "provenance": "documented",
+          "doc_link": "https://pubchem.ncbi.nlm.nih.gov/docs/downloads",
+          "response_format": "HTML documentation and rights page",
+          "must_confirm_live": "The current text of the contributor-agreement warning, and which specific contributing sources are excluded from bulk download. The map records that the warning exists but does not enumerate the excluded datasets, so no per-source rights conclusion can be drawn yet."
+        }
+      ],
+      "rate_limit": "Documented: no more than 5 requests per second across the whole client (stated in the map and mirrored in the project access policy). No documented daily quota or key requirement for ordinary public queries. Separately, NMRx's own access_policy.json imposes conservative self-caps (50 requests/job, 2 MiB/response, 10 MiB/job, 0.25 s minimum spacing per host) that are proposed defaults awaiting user confirmation, not provider-published limits.",
+      "hostname_gotchas": "pubchem.ncbi.nlm.nih.gov is the only PubChem host in the pilot allowlist. Bulk collections are documented as served from ftp.ncbi.nlm.nih.gov over HTTPS \u2014 a different hostname that is NOT granted, so any download link followed off the API host will fail. PUG REST is also documented as supporting asynchronous/listkey-style flows; if any such flow redirects to another NCBI hostname it crosses a permission boundary, and the project policy sets follow_redirects_to_new_hosts=false, so it fails closed rather than silently fetching."
+    },
+    {
+      "id": "nmrshiftdb2",
+      "hostnames": [
+        "nmrshiftdb.nmr.uni-koeln.de",
+        "sourceforge.net (documented bulk-download landing \u2014 NOT in the pilot allowlist)"
+      ],
+      "routes": [
+        {
+          "purpose": "Read the official Swagger/OpenAPI description before any data call",
+          "url_template": "https://nmrshiftdb.nmr.uni-koeln.de/api-docs/",
+          "provenance": "documented",
+          "doc_link": "https://nmrshiftdb.nmr.uni-koeln.de/api-docs/",
+          "response_format": "Swagger API documentation. Whether this path serves the interactive HTML UI or the raw OpenAPI document is NOT established by the map.",
+          "must_confirm_live": "Whether /api-docs/ returns the Swagger UI or the spec itself; the URL of the underlying machine-readable OpenAPI JSON/YAML; the OpenAPI version; the declared server base path; and whether any operation requires authentication. This is the single highest-value unblock for this source, because every data route below depends on reading it."
+        },
+        {
+          "purpose": "Per-record spectrum, peak-list and structure retrieval \u2014 the actual reason to connect to this source",
+          "url_template": "https://nmrshiftdb.nmr.uni-koeln.de/{operation-path-read-from-the-Swagger-spec}",
+          "provenance": "inferred",
+          "doc_link": "https://nmrshiftdb.nmr.uni-koeln.de/api-docs/",
+          "response_format": "Unknown. The map does not state whether the API returns JSON, CML, NMReDATA or SDF per record.",
+          "must_confirm_live": "Everything. The map supplies only the Swagger index \u2014 no operation path, no parameter name, no response schema. Do NOT compose a path from convention: fetch the spec, pin one operation, then record its parameters, output media type, and critically whether returned shifts carry atom indices that can be mapped back to a structure. Also confirm per-record whether a spectrum is measured or calculated, since the map states the database contains both and NMRx must not merge them."
+        },
+        {
+          "purpose": "Locate the official bulk SDF / NMReDATA / CML releases and pin a release version",
+          "url_template": "https://nmrshiftdb.nmr.uni-koeln.de/nmrshiftdbhtml/t1.html",
+          "provenance": "documented",
+          "doc_link": "https://nmrshiftdb.nmr.uni-koeln.de/nmrshiftdbhtml/t1.html",
+          "response_format": "HTML page linking out to downloads",
+          "must_confirm_live": "Which release files are current, their exact file names, dates and byte sizes, and where each link actually resolves. The map warns that SourceForge can redirect to further download mirrors that must be resolved explicitly \u2014 each such mirror is a separate hostname and a separate permission question, and none are in the pilot allowlist."
+        },
+        {
+          "purpose": "Establish the data licence before any record is stored or redistributed",
+          "url_template": "https://nmrshiftdb.nmr.uni-koeln.de/License.txt",
+          "provenance": "documented",
+          "doc_link": "https://nmrshiftdb.nmr.uni-koeln.de/License.txt",
+          "response_format": "Expected plain text. The map records that this link did not render during the research pass, so even its content type is unconfirmed.",
+          "must_confirm_live": "Whether the file exists and resolves, and exactly which licence and version it names. The map is explicit that the earlier blanket share-alike claim must NOT be carried forward without reading this. Until it renders, this source's rights status stays 'unverified' and it cannot be cleared for redistribution."
+        }
+      ],
+      "rate_limit": "None documented. Neither the map nor the registry records any published request limit for this host. Treat as unknown and apply NMRx-side spacing (the project default is 0.25 s minimum between requests per host) as a courtesy default, not as a provider statement.",
+      "hostname_gotchas": "Single API host; no www variant is documented, so do not invent one. The trap is the bulk path: downloads leave the host entirely for sourceforge.net, which commonly issues a second redirect to a mirror host (a regional or downloads.* mirror). Neither sourceforge.net nor any mirror is in the pilot allowlist, so a bulk fetch is not a one-host operation and must be treated as a separate permission request with the resolved final hostname named explicitly."
+    },
+    {
+      "id": "ebi_shared_chembl_chebi_unichem",
+      "hostnames": [
+        "www.ebi.ac.uk (one granted host serving ChEMBL, ChEBI and UniChem on different path prefixes)",
+        "ftp.ebi.ac.uk (documented bulk releases for both ChEMBL and ChEBI \u2014 NOT granted)",
+        "chembl.gitbook.io (ChEMBL documentation and licensing \u2014 NOT granted)"
+      ],
+      "routes": [
+        {
+          "purpose": "Read the ChEMBL REST resource list and request conventions",
+          "url_template": "https://www.ebi.ac.uk/chembl/api/data/docs",
+          "provenance": "documented",
+          "doc_link": "https://www.ebi.ac.uk/chembl/api/data/docs",
+          "response_format": "HTML documentation index listing the available data resources",
+          "must_confirm_live": "The current resource list; whether response format is selected by a .json/.xml path suffix, an Accept header or a format query parameter; the default and maximum page size; and the exact pagination envelope field names. The map documents this URL but states nothing about the request conventions."
+        },
+        {
+          "purpose": "Fetch one ChEMBL molecule record by ChEMBL ID",
+          "url_template": "https://www.ebi.ac.uk/chembl/api/data/molecule/{chembl_id}.json",
+          "provenance": "inferred",
+          "doc_link": "https://www.ebi.ac.uk/chembl/api/data/docs",
+          "response_format": "Expected JSON molecule record with nested structure and property blocks. Field names NOT observed.",
+          "must_confirm_live": "Whether the .json suffix is the correct format selector; the exact resource name ('molecule' vs a plural or hyphenated form); whether structures are nested under a sub-object; and which fields are calculated properties, since the map requires calculated properties to stay labelled and never be stored as measured values."
+        },
+        {
+          "purpose": "Retrieve measured bioactivity rows for a molecule",
+          "url_template": "https://www.ebi.ac.uk/chembl/api/data/activity.json?molecule_chembl_id={chembl_id}&limit={n}",
+          "provenance": "inferred",
+          "doc_link": "https://www.ebi.ac.uk/chembl/api/data/docs",
+          "response_format": "Expected paginated JSON with an activities array and a page-metadata object. NOT observed.",
+          "must_confirm_live": "The exact filter parameter name and whether Django-style lookup suffixes are supported; the maximum accepted limit; the pagination contract; and above all whether every row reliably carries assay type, organism, target confidence, units, the standard endpoint type and the inequality/relation symbol. The map is emphatic that Ki, Kd and IC50 are different endpoints and that inequality symbols must be preserved \u2014 if any of those fields can be absent, the adapter must record them as unknown rather than defaulting."
+        },
+        {
+          "purpose": "Structure-based ChEMBL lookup when no ChEMBL ID is known",
+          "url_template": "https://www.ebi.ac.uk/chembl/api/data/molecule.json?{structure-filter-parameter-from-docs}={query}",
+          "provenance": "inferred",
+          "doc_link": "https://www.ebi.ac.uk/chembl/api/data/docs",
+          "response_format": "Expected paginated JSON molecule list. NOT observed.",
+          "must_confirm_live": "Whether exact-structure (flexmatch-style) and similarity search exist as filters on this resource or as separate resources; whether similarity takes a threshold as a path segment or a parameter; and whether a similarity hit is distinguishable in the payload from an exact match \u2014 the map requires exact-identity and related-form matches to be stored distinctly."
+        },
+        {
+          "purpose": "Read the current ChEBI REST API description",
+          "url_template": "https://www.ebi.ac.uk/chebi/backend/api/docs/",
+          "provenance": "documented",
+          "doc_link": "https://www.ebi.ac.uk/chebi/backend/api/docs/",
+          "response_format": "ChEBI REST API documentation. Whether it is rendered OpenAPI or hand-written HTML is NOT established.",
+          "must_confirm_live": "Whether this serves a machine-readable OpenAPI document; the resource paths available under the /chebi/backend/api/ prefix; and whether the legacy SOAP/webservice endpoints still answer \u2014 the map says to use the current REST docs rather than legacy SOAP, which implies the legacy interface may still resolve and produce stale-shaped data."
+        },
+        {
+          "purpose": "Fetch one curated ChEBI entity (names, classes, roles, cross-references)",
+          "url_template": "https://www.ebi.ac.uk/chebi/backend/api/{resource-path-from-docs}/{chebi_id}",
+          "provenance": "inferred",
+          "doc_link": "https://www.ebi.ac.uk/chebi/backend/api/docs/",
+          "response_format": "Unknown. No response shape for ChEBI entity retrieval appears in the map.",
+          "must_confirm_live": "The entire resource path below /chebi/backend/api/; whether the identifier is passed as 'CHEBI:15377' or a bare numeric; the JSON field names; and whether ontology roles are returned inline or need a second call. Only the docs index URL is documented \u2014 the retrieval path is not."
+        },
+        {
+          "purpose": "Establish ChEBI licence and attribution requirements",
+          "url_template": "https://www.ebi.ac.uk/chebi/about",
+          "provenance": "documented",
+          "doc_link": "https://www.ebi.ac.uk/chebi/about",
+          "response_format": "HTML about and licence page",
+          "must_confirm_live": "That the page still states CC BY 4.0 and what attribution string it asks for. The map records CC BY 4.0 without caveat, but that is documentation review, not a live licence fetch."
+        },
+        {
+          "purpose": "Resolve the current UniChem API base path and cross-reference endpoints",
+          "url_template": "https://www.ebi.ac.uk/training/online/courses/unichem-quick-tour/unichem-developer-resources/",
+          "provenance": "documented",
+          "doc_link": "https://www.ebi.ac.uk/training/online/courses/unichem-quick-tour/unichem-developer-resources/",
+          "response_format": "HTML training-course page. This is a training page, NOT an API reference \u2014 it is the only UniChem developer link the map carries.",
+          "must_confirm_live": "Which API base path this page currently points at, whether a legacy REST interface and a newer versioned API both exist and which is current, whether connectivity search is a GET or a POST, and whether the page links an OpenAPI document. The map explicitly instructs resolving the exact current endpoints from this page rather than assuming them."
+        },
+        {
+          "purpose": "Cross-reference a chemical identifier across UniChem member databases",
+          "url_template": "https://www.ebi.ac.uk/unichem/{api-version-and-resource-path-read-from-the-developer-page}",
+          "provenance": "inferred",
+          "doc_link": "https://www.ebi.ac.uk/training/online/courses/unichem-quick-tour/unichem-developer-resources/",
+          "response_format": "Unknown. No UniChem endpoint or response shape appears anywhere in the map.",
+          "must_confirm_live": "Everything below the hostname, including whether the path prefix is even /unichem/. The map gives a documentation page and no endpoint at all. Additionally confirm that the response distinguishes an exact-identity match from a connectivity match \u2014 the map warns connectivity matches can include different stereochemistry, isotopes and salt forms, which NMRx must never merge into exact identity."
+        },
+        {
+          "purpose": "Define the identity-versus-connectivity rule the adapter applies to UniChem hits",
+          "url_template": "https://www.ebi.ac.uk/training/online/courses/unichem-quick-tour/what-can-i-do-with-unichem/",
+          "provenance": "documented",
+          "doc_link": "https://www.ebi.ac.uk/training/online/courses/unichem-quick-tour/what-can-i-do-with-unichem/",
+          "response_format": "HTML training page",
+          "must_confirm_live": "The current definition of connectivity matching and which response field signals match type. Without this, no UniChem result may be promoted to an exact-identity claim."
+        }
+      ],
+      "rate_limit": "None documented for any of the three services. The map and registry record no published limit for ChEMBL, ChEBI or UniChem. EBI may apply per-IP throttling that is not captured here; treat as unknown and confirm from the live docs or response headers before any sustained job.",
+      "hostname_gotchas": "One hostname, three unrelated services separated only by path prefix (/chembl/api/data/..., /chebi/backend/api/..., /unichem/...). Allowlisting www.ebi.ac.uk grants all three at once and also grants PDBe (/pdbe/...) and the EBI-hosted Europe PMC service, which are separate registry entries not part of this pilot \u2014 the network allowlist cannot express that distinction, so path-level restriction has to be enforced inside the NMRx client, not by the environment. Also: ChEMBL's documentation and licensing live on chembl.gitbook.io and ChEMBL/ChEBI bulk releases on ftp.ebi.ac.uk; neither is www.ebi.ac.uk and neither is granted, so the pilot can call these APIs without being able to reach ChEMBL's own licence page from inside the environment."
+    },
+    {
+      "id": "rcsb_data",
+      "hostnames": [
+        "data.rcsb.org",
+        "www.rcsb.org (hosts ALL the documentation these routes depend on \u2014 NOT granted)",
+        "files.rcsb.org (coordinate downloads \u2014 NOT granted)"
+      ],
+      "routes": [
+        {
+          "purpose": "Read the Data API resource model and REST/GraphQL conventions",
+          "url_template": "https://www.rcsb.org/docs/programmatic-access/web-apis-overview",
+          "provenance": "documented",
+          "doc_link": "https://www.rcsb.org/docs/programmatic-access/web-apis-overview",
+          "response_format": "HTML documentation page, served from www.rcsb.org \u2014 a host that is NOT in the pilot allowlist",
+          "must_confirm_live": "The current API version segment, the full resource list, and whether REST and GraphQL are both served from data.rcsb.org. Note the structural problem: this documentation cannot be fetched under the present allowlist, so the routes below must either be confirmed from outside the pilot environment or www.rcsb.org must be added as a documentation host."
+        },
+        {
+          "purpose": "Fetch metadata for one PDB entry",
+          "url_template": "https://data.rcsb.org/rest/v1/core/entry/{entry_id}",
+          "provenance": "inferred",
+          "doc_link": "https://www.rcsb.org/docs/programmatic-access/web-apis-overview",
+          "response_format": "Expected JSON metadata document for a single structure. Field names NOT observed.",
+          "must_confirm_live": "That the /rest/v1/core/ prefix and 'entry' resource name are current; whether the 4-character PDB ID is case-sensitive; which field carries the experimental method so experimental structures can be separated from computed structure models as the map requires; and the 404 body shape. This exact URL was the project's pilot probe step for this host and was refused at CONNECT, so even reachability is unestablished."
+        },
+        {
+          "purpose": "Fetch the chemical component (bound ligand) record needed to match a ligand to the submitted molecule",
+          "url_template": "https://data.rcsb.org/rest/v1/core/chemcomp/{comp_id}",
+          "provenance": "inferred",
+          "doc_link": "https://www.rcsb.org/docs/programmatic-access/web-apis-overview",
+          "response_format": "Expected JSON chemical-component record. NOT observed.",
+          "must_confirm_live": "The exact resource spelling (chemcomp vs chem_comp vs another form); whether the component ID is the 3-to-5-character PDB ligand code; and which identifier fields (InChIKey, SMILES, formula) are present, since without a reliable structure identifier a ligand cannot be matched to NMRx's molecule without guessing."
+        },
+        {
+          "purpose": "Fetch entity-level records linking an entry to its polymer chains and bound non-polymers",
+          "url_template": "https://data.rcsb.org/rest/v1/core/polymer_entity/{entry_id}/{entity_id}",
+          "provenance": "inferred",
+          "doc_link": "https://www.rcsb.org/docs/programmatic-access/web-apis-overview",
+          "response_format": "Expected JSON entity record. NOT observed.",
+          "must_confirm_live": "The resource names for polymer and non-polymer entities, the two-segment identifier form, and how entity IDs are discovered from an entry payload (whether the entry record enumerates them or a separate call is needed)."
+        },
+        {
+          "purpose": "Batch several metadata fields in one request instead of many REST calls",
+          "url_template": "https://data.rcsb.org/graphql",
+          "provenance": "inferred",
+          "doc_link": "https://www.rcsb.org/docs/programmatic-access/web-apis-overview",
+          "response_format": "Expected GraphQL JSON response. NOT observed.",
+          "must_confirm_live": "Whether GraphQL is served from data.rcsb.org at all and at what path; whether GET with a query parameter is accepted or POST is required; whether schema introspection is enabled; and the error envelope. The map states the APIs are 'REST/GraphQL' but does not place the GraphQL endpoint on a specific host or path."
+        }
+      ],
+      "rate_limit": "None documented. The map and registry record no published request limit for the RCSB Data API. Treat as unknown. The map does note that file servers are not automatically huge downloads and that file-count and byte limits belong on the job itself, which is how the project's own caps are framed.",
+      "hostname_gotchas": "RCSB is split across four hostnames and only two are in the pilot: data.rcsb.org (metadata) and search.rcsb.org (search). www.rcsb.org \u2014 which hosts every documentation page these routes cite, plus the usage policy carrying the CC0 rights statement \u2014 is NOT granted, and neither is files.rcsb.org for coordinates. The practical consequence: under the current allowlist the pilot could in principle call the API but cannot read the API's documentation or its rights page from inside the environment, and cannot retrieve a structure file. Also confirm whether computed structure models are addressed by 4-character PDB IDs or a separate identifier space, because mixing the two would silently blend predicted and experimental evidence."
+    },
+    {
+      "id": "rcsb_search",
+      "hostnames": [
+        "search.rcsb.org",
+        "www.rcsb.org (search query-language documentation \u2014 NOT granted)",
+        "data.rcsb.org (required second hop for every search result \u2014 granted)"
+      ],
+      "routes": [
+        {
+          "purpose": "Run a read-only structure search and get back matching identifiers",
+          "url_template": "https://search.rcsb.org/rcsbsearch/v2/query?json={url-encoded-query-document}",
+          "provenance": "inferred",
+          "doc_link": "https://www.rcsb.org/docs/programmatic-access/web-apis-overview",
+          "response_format": "Expected JSON with a result-set array of identifiers plus a total count. Envelope field names NOT observed.",
+          "must_confirm_live": "That the /rcsbsearch/v2/ version segment is current rather than superseded; that the query parameter is literally named 'json'; the practical URL-length ceiling for encoded queries; and what an empty or malformed GET returns. This exact URL was used as the project's reachability probe for this host and was refused at CONNECT \u2014 the probe plan itself expected only an error response, so not even the error shape is known."
+        },
+        {
+          "purpose": "Submit a larger query document that will not fit in a URL",
+          "url_template": "POST https://search.rcsb.org/rcsbsearch/v2/query (JSON request body)",
+          "provenance": "inferred",
+          "doc_link": "https://www.rcsb.org/docs/programmatic-access/web-apis-overview",
+          "response_format": "Expected JSON result set, same envelope as the GET form. NOT observed.",
+          "must_confirm_live": "The required Content-Type; the query DSL node names and nesting (query / request_options / return_type or whatever the current schema uses); the return_type vocabulary and whether it can return entries, entities or chemical components; the paging fields; and the total-count field name. Worth restating for reviewers: the map notes read-only searches can legitimately use POST and that the HTTP method must not be confused with publication or upload \u2014 this route sends a query, never data for deposit."
+        }
+      ],
+      "rate_limit": "None documented. No published limit for the Search API appears in the map or registry. Search is materially more expensive per call than a metadata fetch, so the project-side caps (50 requests/job, 0.25 s spacing) matter more here; those are NMRx defaults awaiting confirmation, not provider limits.",
+      "hostname_gotchas": "search.rcsb.org answers only the search service \u2014 it returns identifiers, not metadata \u2014 so every useful search implies a second call to data.rcsb.org. One logical operation spans two granted hosts, and a job-level request cap must account for that doubling. The query-language documentation lives on www.rcsb.org, which is not granted. Do not assume the v2 path segment survives an API version bump; pin the version and fail loudly if it 404s rather than falling back to a guessed alternative."
+    },
+    {
+      "id": "bindingdb",
+      "hostnames": [
+        "www.bindingdb.org (the ONLY BindingDB host in the pilot allowlist)",
+        "bindingdb.org (bare, no www \u2014 documented by the provider as carrying API endpoints; a DIFFERENT hostname, NOT granted)",
+        "ww.bindingdb.org (note 'ww', not a typo for 'www' \u2014 official download-page alias, NOT granted)",
+        "pmc.ncbi.nlm.nih.gov (maintainers' paper carrying the rights statement \u2014 NOT granted)"
+      ],
+      "routes": [
+        {
+          "purpose": "Read the RESTful API documentation and, critically, discover which hostname and service path the provider actually prints for its endpoints",
+          "url_template": "https://www.bindingdb.org/rwd/bind/BindingDBRESTfulAPI.jsp",
+          "provenance": "documented",
+          "doc_link": "https://www.bindingdb.org/rwd/bind/BindingDBRESTfulAPI.jsp",
+          "response_format": "HTML documentation page",
+          "must_confirm_live": "Which base URL the page prints for its endpoints \u2014 www.bindingdb.org or the bare bindingdb.org \u2014 because only the former is granted; the service path prefix; the operation names; the parameter names; whether responses are XML, JSON, or selectable by a format parameter; and whether any key or registration is required. This was the project's pilot probe step for this host and was refused at CONNECT, so the page content is entirely unread."
+        },
+        {
+          "purpose": "Retrieve measured protein-ligand affinity records for a target or a ligand",
+          "url_template": "https://www.bindingdb.org/{service-path-from-the-documentation-page}/{operation}?{parameters}",
+          "provenance": "inferred",
+          "doc_link": "https://www.bindingdb.org/rwd/bind/BindingDBRESTfulAPI.jsp",
+          "response_format": "Unknown. The map records only that a REST API exists; no endpoint, operation or response schema is documented anywhere in the supplied material.",
+          "must_confirm_live": "Every component \u2014 service path, operation name, parameter names, response media type and schema. Three additional checks specific to this source: (1) whether the service answers on www.bindingdb.org at all or only on the bare bindingdb.org, in which case the pilot allowlist does not cover it and a permission change is required before any call; (2) whether each returned row carries the measurement type (Ki, Kd, IC50, EC50), units, target identity and assay conditions, since the map requires these preserved and never merged; (3) whether the row exposes its origin, because ChEMBL-derived records must be deduplicated against direct ChEMBL evidence and carry a different licence."
+        },
+        {
+          "purpose": "Locate the bulk TSV/SDF releases",
+          "url_template": "https://ww.bindingdb.org/rwd/bind/chemsearch/marvin/Download.jsp",
+          "provenance": "documented",
+          "doc_link": "https://ww.bindingdb.org/rwd/bind/chemsearch/marvin/Download.jsp",
+          "response_format": "HTML download page. Served from the ww. alias, which is NOT in the pilot allowlist.",
+          "must_confirm_live": "Whether www.bindingdb.org serves the same page (which would make the ww. alias avoidable and save a permission request); the current file names, dates and byte sizes of the TSV/SDF releases; and whether a registration form or login gates the download \u2014 the map says bulk registration may apply, so authentication for bulk is not established. Bulk is out of scope for the pilot caps regardless until sizes are known."
+        },
+        {
+          "purpose": "Establish the split rights position across BindingDB-curated and ChEMBL-derived records",
+          "url_template": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11701568/",
+          "provenance": "documented",
+          "doc_link": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11701568/",
+          "response_format": "HTML journal article",
+          "must_confirm_live": "That the paper still states CC BY 4.0 for BindingDB-curated records and CC BY-SA 3.0 for ChEMBL-derived ones. The evidence here is a maintainers' paper rather than a site licence page, which is weaker provenance than a licence file \u2014 and the host is not granted, so this cannot be re-read from inside the environment. Until each record's origin can be read from the API response, the share-alike obligation cannot be applied correctly per record."
+        }
+      ],
+      "rate_limit": "None documented. Neither the map nor the registry records a published request limit for BindingDB. Treat as unknown; confirm from the documentation page once reachable.",
+      "hostname_gotchas": "This is the sharpest trap in the pilot. Three distinct host spellings appear in the provider's own material: www.bindingdb.org (granted), bindingdb.org with no www (documented as carrying API endpoints \u2014 a different hostname that an allowlist entry for www does NOT cover), and ww.bindingdb.org (two w's, the official download alias \u2014 also not covered). An allowlist is matched on the literal hostname, so a redirect from www to either variant crosses a permission boundary; the project policy sets follow_redirects_to_new_hosts=false, so such a call fails closed rather than silently succeeding, which is the desired behaviour but will look like a broken endpoint unless the failure is read correctly. Before requesting any additional permission, confirm from the documentation page which spelling actually answers, then ask for that exact hostname and no wildcard."
+    }
+  ],
+  "summary": "Adapter route plan for the six pilot hosts, built strictly from the two attached files plus the project's existing pilot artifacts. No network request was made; the prior local probe record at /home/user/STEMSphere/nmrx/data/probes/pilot_probe_2026-09-17.json already shows all six hosts classified blocked_by_environment_network_policy with \"Tunnel connection failed: 403 Forbidden\" and 0 bytes downloaded, so nothing below is live-verified and no route is marked verified.\n\nProvenance split: 17 routes are \"documented\" \u2014 the URL appears verbatim in the map \u2014 and 14 are \"inferred\", composed from the map's prose description of a service. Every inferred route carries a must_confirm_live entry naming exactly what is unknown. The pattern worth flagging to whoever implements this: for four of the six sources the map supplies ONLY a documentation page and no concrete data endpoint. nmrshiftdb2 gives a Swagger index with no operation paths; UniChem gives a training-course page with no endpoint at all; BindingDB gives a .jsp documentation page with no service path; and RCSB's Data and Search APIs are described only on www.rcsb.org. So the highest-value first requests after an unblock are documentation fetches, not data fetches \u2014 reading the nmrshiftdb2 OpenAPI spec and the BindingDB API page will resolve more unknowns than any number of composed data calls.\n\nHostname gotchas the plan pins down. BindingDB has three spellings in the provider's own material \u2014 www.bindingdb.org (the only one granted), bare bindingdb.org (documented as carrying the API endpoints), and ww.bindingdb.org (two w's, the download alias); the allowlist matches literal hostnames, so a redirect between them crosses a permission boundary and, with follow_redirects_to_new_hosts=false in the project policy, fails closed in a way that will look like a broken endpoint unless read correctly. RCSB splits across four hosts and only data. and search. are granted \u2014 meaning the pilot could call the APIs but cannot reach www.rcsb.org for their documentation or the CC0 usage policy, nor files.rcsb.org for coordinates; and every search on search.rcsb.org implies a second call to data.rcsb.org, doubling the per-job request count. www.ebi.ac.uk is one granted hostname serving three unrelated services separated only by path prefix (/chembl/api/data/, /chebi/backend/api/, /unichem/), and granting it also grants PDBe and the EBI-hosted Europe PMC service \u2014 the network allowlist cannot express that distinction, so path-level restriction must live in the NMRx client. PubChem's bulk host ftp.ncbi.nlm.nih.gov and ChEMBL/ChEBI's ftp.ebi.ac.uk are documented bulk hosts that are not granted.\n\nRate limits: only PubChem has a provider-published figure (at most 5 requests per second across the whole client). The other five record no published limit anywhere in the supplied material \u2014 marked unknown, not unlimited. The numeric caps in /home/user/STEMSphere/nmrx/data/access_policy.json (50 requests/job, 2 MiB/response, 10 MiB/job, 0.25 s spacing) are NMRx-side proposed defaults awaiting user confirmation, not provider statements, and I have kept that distinction explicit.\n\nRights remain evidence, not proof, throughout. nmrshiftdb2's licence file did not render during the map's research pass, so its status stays unverified and the earlier blanket share-alike claim must not be carried forward. BindingDB's split CC BY 4.0 / CC BY-SA 3.0 position rests on the maintainers' paper rather than a site licence page, and applying it correctly requires reading each record's origin out of the API response \u2014 which is itself unconfirmed."
+}

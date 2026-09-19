@@ -1,0 +1,137 @@
+{
+  "source_id": "nmrxiv",
+  "name": "nmrxiv",
+  "schema_confirmed": false,
+  "hosts_required": [
+    "nmrxiv.org"
+  ],
+  "routes": [
+    {
+      "purpose": "Catalog and metadata search over deposited datasets; the primary discovery entry point for an adapter. Documented filter",
+      "url_template": "https://nmrxiv.org/api/v1/search/",
+      "provenance": "inferred",
+      "doc_link": "https://docs.nmrxiv.org/developer-guides/api.html",
+      "response_format": "unknown \u2014 the map names the path prefix and three filter dimensions but states no response schema, no field names, no pagination convention and no rate limit. Whether the endpoint accepts a structure ",
+      "must_confirm_live": "The PATH '/api/v1/search/' is documented in the source map, but the full URL was composed from it and the portal host. Query parameter names for the documented solvent / temperature / nucleus filters, and the response shape, are unread."
+    },
+    {
+      "purpose": "Authoritative API reference: exact endpoint list, query parameter names, condition-filter syntax, auth requirements, pag",
+      "url_template": "https://docs.nmrxiv.org/developer-guides/api.html",
+      "provenance": "documented",
+      "doc_link": "https://docs.nmrxiv.org/developer-guides/api.html",
+      "response_format": "unknown \u2014 cited twice in the map (lines 35 and 155) as the evidence for the search API and its solvent/temperature/nucleus filters, but its contents were not quoted in the research.",
+      "must_confirm_live": "response shape unconfirmed -- documentation page has not been read"
+    },
+    {
+      "purpose": "Download routes for published deposits, including the BagIt archive path and what a publication-state record exposes; de",
+      "url_template": "https://docs.nmrxiv.org/submission-guides/publication-deposition.html",
+      "provenance": "documented",
+      "doc_link": "https://docs.nmrxiv.org/submission-guides/publication-deposition.html",
+      "response_format": "unknown \u2014 the map derives from it only that \"Raw file and BagIt download availability depends on the published record\" and that file-storage hosts may differ from the portal.",
+      "must_confirm_live": "response shape unconfirmed -- documentation page has not been read"
+    },
+    {
+      "purpose": "Licensing terms: whether a per-project/per-sample license field exists in the API payload, what values it takes, and how",
+      "url_template": "https://docs.nmrxiv.org/FAQs.html",
+      "provenance": "documented",
+      "doc_link": "https://docs.nmrxiv.org/FAQs.html",
+      "response_format": "unknown \u2014 cited as the Licensing FAQ backing the per-record inspection rule; no license text was retrieved in the research.",
+      "must_confirm_live": "response shape unconfirmed -- documentation page has not been read"
+    },
+    {
+      "purpose": "Cross-repository discovery of nmrXiv deposits (also indexes Chemotion, MassBank, RADAR4Chem and DaRUS chemistry records)",
+      "url_template": "https://search.nfdi4chem.de/",
+      "provenance": "documented",
+      "doc_link": "https://search.nfdi4chem.de/",
+      "response_format": "unknown \u2014 the map states \"no general public API was established in this review\" and that it is \"an index of datasets, not an independent set of experimental measurements\".",
+      "must_confirm_live": "response shape unconfirmed -- documentation page has not been read"
+    }
+  ],
+  "capabilities": {
+    "find_structure": "unknown",
+    "retrieve_measurements": "partial",
+    "atom_assignments_and_conditions": "partial",
+    "establish_rights": "no",
+    "calibration_eligible": "unknown"
+  },
+  "blocking_unknowns": [
+    "no live response has been observed; every host is blocked at CONNECT by the environment egress policy",
+    "Whether /api/v1/search/ accepts any structure query at all \u2014 InChI, InChIKey, SMILES, formula or compound name. The map documents only solvent/temperature/nucleus filters. If no chemical-identity query exists there is no molecule-to-record entry point, and nothing downstream matters for NMRx's primary use case.",
+    "If a structure query exists, whether it matches exactly with stereochemistry, charge and isotope preserved, or only fuzzily by name. The map forbids silently merging salts, stereoisomers and tautomers, so a loose matcher needs a downstream identity check before use.",
+    "Whether any nmrXiv record exposes per-atom assignments in machine-readable form (for example NMReDATA or an assignment table), and what fraction do. The map warns explicitly that raw data plus acquisition metadata does not imply an assigned spectrum. This one unknown decides calibration eligibility.",
+    "Whether spectrometer frequency and the referencing compound/method appear in the record payload. Solvent, temperature and nucleus are documented as filters; the other two conditions NMRx tracks are undocumented for this source and must not be filled in by assumption.",
+    "Whether measurements are retrievable as numerical values (peak lists, shift tables) or only as raw/processed instrument files that NMRx would have to process locally \u2014 which would add an FID-processing dependency to the adapter.",
+    "The exact host serving raw files and BagIt archives. The map states it may differ from nmrxiv.org, so that hostname must be resolved from a real download link before any allowlist request; permitting the portal alone may not permit file retrieval.",
+    "Whether the per-project/per-sample license is a structured field in the API response, what values occur, and whether propagation to child spectra is machine-readable. Rights cannot be taken from the site footer, so a record-level license field is the only viable gate.",
+    "Whether metadata access or downloads require authentication or an account for any record class, and any published rate limit. Neither file states nmrXiv's auth posture (contrast Chemotion, where the map flags registration for some dataset downloads).",
+    "Whether nmrXiv deposits duplicate records already held from Chemotion, BMRB metabolomics or nmrshiftdb2, and which stable identifier (DOI or dataset ID) supports deduplication without destroying source lineage.",
+    "Whether the documented /api/v1/search/ prefix is current and complete \u2014 it is a path fragment quoted in secondary research, not a schema read from the provider, so the full route, verb and required parameters must be confirmed against the API documentation rather than guessed."
+  ],
+  "notes": "The only source with documented search filters for solvent, temperature and nucleus. Raw data plus acquisition metadata does NOT guarantee an assigned spectrum. Licences are per project/sample and propagate to spectra; do not read them off the footer.",
+  "record_mapping": {
+    "_status": "provisional -- no real response has been observed; paths are placeholders",
+    "records_path": "",
+    "molecule": {
+      "inchikey": {
+        "path": "inchikey"
+      },
+      "smiles": {
+        "path": "smiles"
+      },
+      "formula": {
+        "path": "formula"
+      },
+      "atom_count": {
+        "path": "atom_count",
+        "transform": "int"
+      }
+    },
+    "source": {
+      "record_id": {
+        "path": "id"
+      },
+      "url": {
+        "path": "url"
+      },
+      "licence": {
+        "path": "license"
+      }
+    },
+    "nucleus": {
+      "path": "nucleus"
+    },
+    "conditions": {
+      "solvent": {
+        "path": "solvent"
+      },
+      "temperature_k": {
+        "path": "temperature_k",
+        "transform": "float"
+      },
+      "reference_compound": {
+        "path": "reference"
+      },
+      "spectrometer_frequency_mhz": {
+        "path": "frequency",
+        "transform": "float"
+      }
+    },
+    "shifts": {
+      "path": "peaks",
+      "atom_index": {
+        "path": "atom",
+        "transform": "int"
+      },
+      "element": {
+        "path": "element"
+      },
+      "shift_ppm": {
+        "path": "ppm",
+        "transform": "float"
+      },
+      "multiplicity": {
+        "path": "multiplicity"
+      }
+    }
+  }
+}

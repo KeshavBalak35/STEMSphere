@@ -1,0 +1,209 @@
+{
+  "run_at": "2026-09-17T03:08:02+00:00",
+  "policy_version": "2026-09-17",
+  "caps": {
+    "max_requests_per_job": 50,
+    "max_bytes_per_response": 2097152,
+    "max_bytes_per_job": 10485760,
+    "caps_provenance": "proposed_default_awaiting_user_confirmation"
+  },
+  "steps_planned": 6,
+  "steps_executed": 6,
+  "total_bytes_downloaded": 0,
+  "classification_counts": {
+    "blocked_by_environment_network_policy": 6
+  },
+  "blocked_hosts": [
+    "data.rcsb.org",
+    "nmrshiftdb.nmr.uni-koeln.de",
+    "pubchem.ncbi.nlm.nih.gov",
+    "search.rcsb.org",
+    "www.bindingdb.org",
+    "www.ebi.ac.uk"
+  ],
+  "results": [
+    {
+      "source_id": "pubchem",
+      "purpose": "identity lookup for one compound (PUG REST)",
+      "url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/2244/property/MolecularFormula,InChIKey/JSON",
+      "host": "pubchem.ncbi.nlm.nih.gov",
+      "classification": "blocked_by_environment_network_policy",
+      "status": null,
+      "bytes_downloaded": 0,
+      "elapsed_ms": 307,
+      "error": "URLError: <urlopen error Tunnel connection failed: 403 Forbidden>",
+      "reason_code": null,
+      "expect": "small JSON with formula and InChIKey for one CID",
+      "note": "inferred path built from the map's documented PUG REST access route; one compound, no bulk"
+    },
+    {
+      "source_id": "nmrshiftdb2",
+      "purpose": "read the official API documentation index",
+      "url": "https://nmrshiftdb.nmr.uni-koeln.de/api-docs/",
+      "host": "nmrshiftdb.nmr.uni-koeln.de",
+      "classification": "blocked_by_environment_network_policy",
+      "status": null,
+      "bytes_downloaded": 0,
+      "elapsed_ms": 281,
+      "error": "URLError: <urlopen error Tunnel connection failed: 403 Forbidden>",
+      "reason_code": null,
+      "expect": "Swagger API documentation",
+      "note": "documented: this URL is listed in the map as the official API documentation"
+    },
+    {
+      "source_id": "chebi",
+      "purpose": "read the official ChEBI API documentation index",
+      "url": "https://www.ebi.ac.uk/chebi/backend/api/docs/",
+      "host": "www.ebi.ac.uk",
+      "classification": "blocked_by_environment_network_policy",
+      "status": null,
+      "bytes_downloaded": 0,
+      "elapsed_ms": 255,
+      "error": "URLError: <urlopen error Tunnel connection failed: 403 Forbidden>",
+      "reason_code": null,
+      "expect": "ChEBI REST API documentation",
+      "note": "documented: listed in the map as ChEBI's official API docs. Also establishes reachability of www.ebi.ac.uk, which serves ChEMBL and UniChem too"
+    },
+    {
+      "source_id": "rcsb",
+      "purpose": "metadata for one PDB entry",
+      "url": "https://data.rcsb.org/rest/v1/core/entry/1CBS",
+      "host": "data.rcsb.org",
+      "classification": "blocked_by_environment_network_policy",
+      "status": null,
+      "bytes_downloaded": 0,
+      "elapsed_ms": 281,
+      "error": "URLError: <urlopen error Tunnel connection failed: 403 Forbidden>",
+      "reason_code": null,
+      "expect": "JSON metadata for a single structure",
+      "note": "inferred path from the map's description of the Data API; one entry, no coordinate files"
+    },
+    {
+      "source_id": "rcsb",
+      "purpose": "confirm the search host answers",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query",
+      "host": "search.rcsb.org",
+      "classification": "blocked_by_environment_network_policy",
+      "status": null,
+      "bytes_downloaded": 0,
+      "elapsed_ms": 249,
+      "error": "URLError: <urlopen error Tunnel connection failed: 403 Forbidden>",
+      "reason_code": null,
+      "expect": "an error or usage response; a GET without a query is expected to be rejected by the service, which still proves reachability",
+      "note": "inferred path from the map's description of the Search API"
+    },
+    {
+      "source_id": "bindingdb",
+      "purpose": "read the official REST API documentation page",
+      "url": "https://www.bindingdb.org/rwd/bind/BindingDBRESTfulAPI.jsp",
+      "host": "www.bindingdb.org",
+      "classification": "blocked_by_environment_network_policy",
+      "status": null,
+      "bytes_downloaded": 0,
+      "elapsed_ms": 318,
+      "error": "URLError: <urlopen error Tunnel connection failed: 403 Forbidden>",
+      "reason_code": null,
+      "expect": "API documentation page",
+      "note": "documented: this URL is listed in the map as BindingDB's official API documentation"
+    }
+  ],
+  "request_log": {
+    "attempt_count": 6,
+    "total_bytes_downloaded": 0,
+    "counts_by_outcome": {
+      "network_error": 6
+    },
+    "attempts": [
+      {
+        "url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/2244/property/MolecularFormula,InChIKey/JSON",
+        "host": "pubchem.ncbi.nlm.nih.gov",
+        "source_id": "pubchem",
+        "purpose": "identity lookup for one compound (PUG REST)",
+        "started_at": "2026-09-17T03:08:00+00:00",
+        "outcome": "network_error",
+        "status": null,
+        "bytes_downloaded": 0,
+        "content_type": null,
+        "elapsed_ms": 307,
+        "error": "URLError: <urlopen error Tunnel connection failed: 403 Forbidden>",
+        "reason_code": null,
+        "truncated": false
+      },
+      {
+        "url": "https://nmrshiftdb.nmr.uni-koeln.de/api-docs/",
+        "host": "nmrshiftdb.nmr.uni-koeln.de",
+        "source_id": "nmrshiftdb2",
+        "purpose": "read the official API documentation index",
+        "started_at": "2026-09-17T03:08:01+00:00",
+        "outcome": "network_error",
+        "status": null,
+        "bytes_downloaded": 0,
+        "content_type": null,
+        "elapsed_ms": 281,
+        "error": "URLError: <urlopen error Tunnel connection failed: 403 Forbidden>",
+        "reason_code": null,
+        "truncated": false
+      },
+      {
+        "url": "https://www.ebi.ac.uk/chebi/backend/api/docs/",
+        "host": "www.ebi.ac.uk",
+        "source_id": "chebi",
+        "purpose": "read the official ChEBI API documentation index",
+        "started_at": "2026-09-17T03:08:01+00:00",
+        "outcome": "network_error",
+        "status": null,
+        "bytes_downloaded": 0,
+        "content_type": null,
+        "elapsed_ms": 255,
+        "error": "URLError: <urlopen error Tunnel connection failed: 403 Forbidden>",
+        "reason_code": null,
+        "truncated": false
+      },
+      {
+        "url": "https://data.rcsb.org/rest/v1/core/entry/1CBS",
+        "host": "data.rcsb.org",
+        "source_id": "rcsb",
+        "purpose": "metadata for one PDB entry",
+        "started_at": "2026-09-17T03:08:01+00:00",
+        "outcome": "network_error",
+        "status": null,
+        "bytes_downloaded": 0,
+        "content_type": null,
+        "elapsed_ms": 281,
+        "error": "URLError: <urlopen error Tunnel connection failed: 403 Forbidden>",
+        "reason_code": null,
+        "truncated": false
+      },
+      {
+        "url": "https://search.rcsb.org/rcsbsearch/v2/query",
+        "host": "search.rcsb.org",
+        "source_id": "rcsb",
+        "purpose": "confirm the search host answers",
+        "started_at": "2026-09-17T03:08:02+00:00",
+        "outcome": "network_error",
+        "status": null,
+        "bytes_downloaded": 0,
+        "content_type": null,
+        "elapsed_ms": 249,
+        "error": "URLError: <urlopen error Tunnel connection failed: 403 Forbidden>",
+        "reason_code": null,
+        "truncated": false
+      },
+      {
+        "url": "https://www.bindingdb.org/rwd/bind/BindingDBRESTfulAPI.jsp",
+        "host": "www.bindingdb.org",
+        "source_id": "bindingdb",
+        "purpose": "read the official REST API documentation page",
+        "started_at": "2026-09-17T03:08:02+00:00",
+        "outcome": "network_error",
+        "status": null,
+        "bytes_downloaded": 0,
+        "content_type": null,
+        "elapsed_ms": 318,
+        "error": "URLError: <urlopen error Tunnel connection failed: 403 Forbidden>",
+        "reason_code": null,
+        "truncated": false
+      }
+    ]
+  }
+}

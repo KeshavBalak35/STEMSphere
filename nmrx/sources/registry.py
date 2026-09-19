@@ -1,0 +1,383 @@
+"""Loader and query layer for the NMRx source registry.
+
+The registry is a *research directory*: 50 candidate databases, datasets and discovery
+services with their documented hosts, access routes, rights evidence and NMR relevance.
+
+Two things it deliberately is not:
+
+* it is not a permission grant -- see :mod:`nmrx.sources.policy`;
+* it is not proof that any record is retrievable, complete or licensed for reuse.
+  ``rights.status`` records what provider documentation *says*, and carries an explicit
+  ``unverified`` state for the sources whose licence text could not be read.
+"""
+
+from __future__ import annotations
+
+import json
+from collections import Counter
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Dict, Iterable, List, Optional, Sequence
+
+REGISTRY_PATH = Path(__file__).resolve().parent.parent / "data" / "source_registry.json"
+
+#: Connection status of a source inside NMRx. Ordered weakest to strongest.
+STATUS_VALUES = ("unimplemented", "documented_only", "blocked", "fixture_tested", "live_tested")
+
+TIER_VALUES = (
+    "pilot",
+    "nmr_expansion",
+    "next_connection",
+    "later_extension",
+    "specialist",
+    "discovery",
+    "restricted",
+)
+
+RIGHTS_STATUS_VALUES = (
+    # NOTE: there is deliberately no "open_verified". Nothing here has been verified against
+    # a live service, and the research material says so itself. "open_documented" records that
+    # provider documentation states an open licence -- which is evidence, not proof.
+    "open_documented",
+    "open_unverified",
+    "per_record",
+    "non_commercial",
+    "licensed_required",
+    "unverified",
+)
+
+HARVEST_POLICY_VALUES = (
+    "allowed_when_unblocked",
+    "manual_only",
+    "prohibited",
+    "licence_required",
+)
+
+VERDICT_VALUES = ("yes", "partial", "no", "unknown")
+
+
+class RegistryError(ValueError):
+    """Raised when the registry file violates its own contract."""
+
+
+@dataclass(frozen=True)
+class Source:
+    """One registry entry. Thin wrapper -- the JSON stays the source of truth."""
+
+    raw: dict
+
+    @property
+    def id(self) -> str:
+        return self.raw["id"]
+
+    @property
+    def number(self) -> int:
+        return self.raw["number"]
+
+    @property
+    def name(self) -> str:
+        return self.raw["name"]
+
+    @property
+    def tier(self) -> str:
+        return self.raw["nmrx_tier"]
+
+    @property
+    def status(self) -> str:
+        return self.raw["status"]
+
+    @property
+    def data_types(self) -> List[str]:
+        return list(self.raw.get("data_types", []))
+
+    @property
+    def evidence_types(self) -> List[str]:
+        return list(self.raw.get("evidence_types", []))
+
+    @property
+    def rights_status(self) -> str:
+        return self.raw["rights"]["status"]
+
+    @property
+    def commercial_use(self) -> str:
+        return self.raw["rights"].get("commercial_use", "unknown")
+
+    @property
+    def harvest_policy(self) -> str:
+        """The raw provider-side policy field. It says nothing about rights."""
+        return self.raw["harvest_policy"]
+
+    @property
+    def obligations(self) -> List[str]:
+        """Machine-readable licence obligations, e.g. attribution, share_alike."""
+        return list(self.raw.get("rights", {}).get("obligations", []) or [])
+
+    @property
+    def has_share_alike(self) -> bool:
+        return any("share_alike" in o for o in self.obligations)
+
+    @property
+    def overlaps_with(self) -> List[str]:
+        """Sources documented as serving some of the same underlying records."""
+        return list(self.raw.get("overlaps_with", []) or [])
+
+    @property
+    def republishes(self) -> List[str]:
+        """Sources this one is documented as re-serving. Its copies are not corroboration."""
+        return list(self.raw.get("republishes", []) or [])
+
+    @property
+    def engine_supported(self):
+        """Whether NMRx's quantum engine actually covers this source's chemistry.
+
+        Searchability in a database does not imply the calculation is supported -- the map is
+        explicit that extra databases do not extend the engine's validated domain.
+        """
+        return self.raw.get("engine_supported", "unknown")
+
+    @property
+    def rights_established(self) -> bool:
+        """True only when documentation names a licence for the SOURCE as a whole.
+
+        ``per_record`` deliberately does not count. A source whose terms vary record by record
+        has settled nothing at the source level -- MassBank's mandatory LICENSE field can say
+        CC0 on one record and non-commercial on the next -- so it cannot be harvested on the
+        strength of a source-level judgement. See :attr:`rights_per_record`.
+        """
+        return self.rights_status == "open_documented"
+
+    @property
+    def rights_per_record(self) -> bool:
+        """Usable, but only with a per-record licence check on every record ingested."""
+        return self.rights_status == "per_record"
+
+    @property
+    def has_nmr(self) -> bool:
+        return bool(self.raw.get("nmr_relevance", {}).get("has_nmr", False))
+
+    @property
+    def assignments(self) -> str:
+        return self.raw.get("nmr_relevance", {}).get("assignments", "unknown")
+
+    @property
+    def conditions(self) -> str:
+        return self.raw.get("nmr_relevance", {}).get("conditions", "unknown")
+
+    def hosts(self, role: Optional[str] = None) -> List[str]:
+        """Hostnames for one role (``api``/``web``/``files``/``docs``) or all roles."""
+        h = self.raw.get("hosts", {})
+        roles: Iterable[str] = [role] if role else h.keys()
+        out: List[str] = []
+        for r in roles:
+            for pair in h.get(r, []) or []:
+                out.append(pair[0] if isinstance(pair, (list, tuple)) else pair)
+        return out
+
+    def routes(self) -> List[dict]:
+        return list(self.raw.get("access", {}).get("routes", []) or [])
+
+    def documented_routes(self) -> List[dict]:
+        return [r for r in self.routes() if r.get("provenance") == "documented"]
+
+    def needs_credentials(self) -> bool:
+        return self.raw.get("access", {}).get("auth", "unknown") in ("api_key", "account", "license")
+
+    def __repr__(self) -> str:  # pragma: no cover - debugging aid
+        return f"<Source {self.id} tier={self.tier} status={self.status}>"
+
+
+class SourceRegistry:
+    """Queryable view over the registry file."""
+
+    def __init__(self, entries: Sequence[dict], meta: Optional[dict] = None) -> None:
+        self._sources = [Source(e) for e in entries]
+        self._by_id: Dict[str, Source] = {}
+        for index, s in enumerate(self._sources):
+            if not isinstance(s.raw, dict):
+                raise RegistryError(f"entry {index} is not an object")
+            if "id" not in s.raw:
+                raise RegistryError(f"entry {index} has no 'id' key")
+            if s.id in self._by_id:
+                raise RegistryError(f"duplicate source id {s.id!r}")
+            self._by_id[s.id] = s
+        self.meta = dict(meta or {})
+
+    # -- construction --------------------------------------------------------
+
+    @classmethod
+    def load(cls, path: Path | str = REGISTRY_PATH) -> "SourceRegistry":
+        with open(path, "r", encoding="utf-8") as fh:
+            doc = json.load(fh)
+        if isinstance(doc, list):
+            return cls(doc)
+        entries = doc.get("sources")
+        if entries is None:
+            raise RegistryError("registry document has no 'sources' key")
+        meta = {k: v for k, v in doc.items() if k != "sources"}
+        return cls(entries, meta)
+
+    # -- access --------------------------------------------------------------
+
+    def __len__(self) -> int:
+        return len(self._sources)
+
+    def __iter__(self):
+        return iter(self._sources)
+
+    def __getitem__(self, source_id: str) -> Source:
+        try:
+            return self._by_id[source_id]
+        except KeyError:
+            raise KeyError(f"no source with id {source_id!r}") from None
+
+    def get(self, source_id: str) -> Optional[Source]:
+        return self._by_id.get(source_id)
+
+    def ids(self) -> List[str]:
+        return [s.id for s in self._sources]
+
+    def by_tier(self, *tiers: str) -> List[Source]:
+        want = set(tiers)
+        return [s for s in self._sources if s.tier in want]
+
+    def by_status(self, *statuses: str) -> List[Source]:
+        want = set(statuses)
+        return [s for s in self._sources if s.status in want]
+
+    def with_data_type(self, data_type: str) -> List[Source]:
+        return [s for s in self._sources if data_type in s.data_types]
+
+    def nmr_sources(self) -> List[Source]:
+        return [s for s in self._sources if s.has_nmr]
+
+    def measured_nmr_sources(self) -> List[Source]:
+        """Sources that carry NMR *and* claim measured evidence -- the NMRx priority set."""
+        return [s for s in self.nmr_sources() if "measured" in s.evidence_types]
+
+    def harvest_policy_allows(self) -> List[Source]:
+        """Sources with no provider-side prohibition or licence gate.
+
+        This is the raw field only. It says nothing about whether the rights are established,
+        so it is NOT the set that may actually be harvested -- see :meth:`harvestable`.
+        """
+        return [s for s in self._sources if s.harvest_policy == "allowed_when_unblocked"]
+
+    def harvestable(self) -> List[Source]:
+        """Sources harvestable on a source-level licence, once the network opens.
+
+        Deliberately much stricter than the ``harvest_policy`` field alone. A source whose
+        licence nobody has read is not harvestable just because no provider forbade it: its
+        records would fail the calibration gate at CAL-008, and redistributing them would rest
+        on an assumption rather than a licence.
+        """
+        return [s for s in self.harvest_policy_allows() if s.rights_established]
+
+    def harvestable_per_record(self) -> List[Source]:
+        """Sources harvestable only with a licence check on every individual record.
+
+        Kept separate from :meth:`harvestable` because the ingestion code has to behave
+        differently: it must read and store each record's own licence, and must not pool these
+        records with differently-licensed ones in a redistributed table.
+        """
+        return [s for s in self.harvest_policy_allows() if s.rights_per_record]
+
+    def rights_unestablished(self) -> List[Source]:
+        """Sources whose licence documentation did not settle the question."""
+        return [s for s in self._sources if not s.rights_established]
+
+    def all_hosts(self, role: Optional[str] = None) -> List[str]:
+        seen: List[str] = []
+        for s in self._sources:
+            for h in s.hosts(role):
+                if h not in seen:
+                    seen.append(h)
+        return sorted(seen)
+
+    # -- integrity -----------------------------------------------------------
+
+    def validate(self) -> List[str]:
+        """Return a list of contract violations. Empty list means the registry is sound."""
+        problems: List[str] = []
+        for s in self._sources:
+            e = s.raw
+            where = f"{s.id}"
+            for key in ("id", "number", "name", "group", "nmrx_tier", "status",
+                        "data_types", "evidence_types", "hosts", "access", "rights",
+                        "nmr_relevance", "harvest_policy", "automated_ingestion_approved"):
+                if key not in e:
+                    problems.append(f"{where}: missing required key {key!r}")
+            if e.get("nmrx_tier") not in TIER_VALUES:
+                problems.append(f"{where}: nmrx_tier {e.get('nmrx_tier')!r} not in {TIER_VALUES}")
+            if e.get("status") not in STATUS_VALUES:
+                problems.append(f"{where}: status {e.get('status')!r} not in {STATUS_VALUES}")
+            if e.get("harvest_policy") not in HARVEST_POLICY_VALUES:
+                problems.append(f"{where}: harvest_policy {e.get('harvest_policy')!r} invalid")
+            if e.get("automated_ingestion_approved") is not False:
+                problems.append(
+                    f"{where}: automated_ingestion_approved must stay False -- the source map "
+                    "grants no ingestion permission"
+                )
+            rights = e.get("rights", {})
+            if not isinstance(rights, dict):
+                problems.append(f"{where}: rights must be an object")
+                rights = {}
+            if rights.get("status") not in RIGHTS_STATUS_VALUES:
+                problems.append(f"{where}: rights.status {rights.get('status')!r} invalid")
+            if rights.get("commercial_use") not in ("yes", "yes_with_share_alike", "no",
+                                                    "unknown", "negotiate"):
+                problems.append(f"{where}: rights.commercial_use {rights.get('commercial_use')!r} invalid")
+            nmr = e.get("nmr_relevance", {})
+            if not isinstance(nmr, dict):
+                problems.append(f"{where}: nmr_relevance must be an object")
+                nmr = {}
+            access = e.get("access", {})
+            if not isinstance(access, dict):
+                problems.append(f"{where}: access must be an object")
+            for k in ("assignments", "conditions"):
+                if nmr.get(k) not in VERDICT_VALUES:
+                    problems.append(f"{where}: nmr_relevance.{k} {nmr.get(k)!r} invalid")
+            hosts = e.get("hosts", {})
+            if not isinstance(hosts, dict):
+                problems.append(f"{where}: hosts must be an object keyed by role")
+            else:
+                for role in hosts:
+                    if role not in ("api", "web", "files", "docs"):
+                        problems.append(f"{where}: unknown host role {role!r}")
+            for sid in list(e.get("overlaps_with", [])) + list(e.get("republishes", [])):
+                if sid not in self._by_id:
+                    problems.append(f"{where}: references unknown source id {sid!r}")
+            if e.get("engine_supported") not in (True, False, "bounded", "unknown"):
+                problems.append(f"{where}: engine_supported {e.get('engine_supported')!r} invalid")
+            if not isinstance(rights.get("obligations", []), list):
+                problems.append(f"{where}: rights.obligations must be a list")
+            for route in (access if isinstance(access, dict) else {}).get("routes", []) or []:
+                if route.get("provenance") not in ("documented", "inferred"):
+                    problems.append(
+                        f"{where}: route {route.get('url')!r} has provenance "
+                        f"{route.get('provenance')!r}; must be 'documented' or 'inferred'"
+                    )
+        return problems
+
+    # -- summary -------------------------------------------------------------
+
+    def summary(self) -> dict:
+        return {
+            "source_count": len(self._sources),
+            "by_tier": dict(Counter(s.tier for s in self._sources)),
+            "by_status": dict(Counter(s.status for s in self._sources)),
+            "by_rights_status": dict(Counter(s.rights_status for s in self._sources)),
+            "by_harvest_policy": dict(Counter(s.harvest_policy for s in self._sources)),
+            "harvest_policy_allows": len(self.harvest_policy_allows()),
+            "harvestable_source_level_licence": len(self.harvestable()),
+            "harvestable_per_record_check": len(self.harvestable_per_record()),
+            "rights_unestablished": len(self.rights_unestablished()),
+            "share_alike_sources": sum(1 for s in self._sources if s.has_share_alike),
+            "nmr_sources": len(self.nmr_sources()),
+            "measured_nmr_sources": len(self.measured_nmr_sources()),
+            "with_assignments_yes": sum(1 for s in self.nmr_sources() if s.assignments == "yes"),
+            "with_conditions_yes": sum(1 for s in self.nmr_sources() if s.conditions == "yes"),
+        }
+
+
+def load_registry(path: Path | str = REGISTRY_PATH) -> SourceRegistry:
+    return SourceRegistry.load(path)

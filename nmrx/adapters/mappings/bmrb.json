@@ -1,0 +1,137 @@
+{
+  "source_id": "bmrb",
+  "name": "bmrb_metabolomics",
+  "schema_confirmed": false,
+  "hosts_required": [
+    "bmrb.io",
+    "api.bmrb.io"
+  ],
+  "routes": [
+    {
+      "purpose": "Metabolomics portal landing page - entry point the map credits with downloads; use to learn the portal's entry/accession",
+      "url_template": "https://bmrb.io/metabolomics/",
+      "provenance": "documented",
+      "doc_link": "https://bmrb.io/metabolomics/",
+      "response_format": "unknown - the map says only \"portal provides downloads\" and gives no page structure, entry listing format or file manifest",
+      "must_confirm_live": "response shape unconfirmed -- documentation page has not been read"
+    },
+    {
+      "purpose": "Official BMRB-API documentation - the authoritative source for endpoint paths, query parameters, authentication and resp",
+      "url_template": "https://github.com/bmrb-io/BMRB-API",
+      "provenance": "documented",
+      "doc_link": "https://github.com/bmrb-io/BMRB-API",
+      "response_format": "unknown - the map links the repo but summarizes no endpoint, no parameter and no response body; the entire API surface must come from reading this page when unblocked",
+      "must_confirm_live": "response shape unconfirmed -- documentation page has not been read"
+    },
+    {
+      "purpose": "Metabolomics data policy - the rights evidence page; read to determine what \"free access\" covers and whether any reuse/r",
+      "url_template": "https://bmrb.io/metabolomics/data_policy.shtml",
+      "provenance": "documented",
+      "doc_link": "https://bmrb.io/metabolomics/data_policy.shtml",
+      "response_format": "documented to state free access; the map says it \"does not itself specify a standard reuse license\", so expect no CC0/CC BY grant on this page and expect to have to trace the applicable archive terms ",
+      "must_confirm_live": "response shape unconfirmed -- documentation page has not been read"
+    },
+    {
+      "purpose": "API host for programmatic retrieval of metabolomics entries",
+      "url_template": "https://api.bmrb.io",
+      "provenance": "inferred",
+      "doc_link": "",
+      "response_format": "unknown - the registry documents api.bmrb.io as the \"API\" host, but no path, version prefix, verb or payload appears in the map. No endpoint may be constructed until the BMRB-API docs are read live.",
+      "must_confirm_live": "exact path, parameters and response shape are unconfirmed"
+    },
+    {
+      "purpose": "Optional bulk/raw file server; the map marks it optional and advises against adding every mirror up front - consult only",
+      "url_template": "https://ftp.bmrb.io",
+      "provenance": "inferred",
+      "doc_link": "",
+      "response_format": "unknown - registry lists the host as \"optional FTP server\" with no directory layout, file naming or manifest documented",
+      "must_confirm_live": "exact path, parameters and response shape are unconfirmed"
+    }
+  ],
+  "capabilities": {
+    "find_structure": "unknown",
+    "retrieve_measurements": "partial",
+    "atom_assignments_and_conditions": "unknown",
+    "establish_rights": "no",
+    "calibration_eligible": "unknown"
+  },
+  "blocking_unknowns": [
+    "no live response has been observed; every host is blocked at CONNECT by the environment egress policy",
+    "Every API detail. No endpoint path, query parameter, auth requirement, rate limit or response schema for api.bmrb.io appears in either attached file. The BMRB-API docs must be read live first - the map's own instruction is \"Confirm the official API schemas rather than guessing routes.\"",
+    "Whether structure-based lookup exists at all: can a record be found by InChI/InChIKey/SMILES, or only by BMRB metabolomics accession, compound name or an external ID? Without this, find_structure cannot be implemented.",
+    "How exact-molecule identity is represented per record (salt form, protonation state, tautomer, isotopic labelling, stereochemistry), since the map requires \"exact molecule / different protonation, salt, tautomer, isotope or stereoisomer\" to be stored as distinct states.",
+    "Which field distinguishes experimental from theoretical entries, and whether that field is exposed through the API rather than only rendered in the portal. The map warns the portal mixes both and that the distinction must be preserved.",
+    "Whether peaks carry atom-level assignments mapped to a specific structure's atom numbering, or are unassigned/partially assigned peak lists. The map only says to \"verify assignments ... per record\".",
+    "Whether solvent, temperature, pH, chemical-shift reference compound and referencing method, nucleus and spectrometer frequency exist as structured per-record fields - and, where absent, whether they are genuinely absent upstream or dropped by an export/parser (the map requires that audit explicitly).",
+    "Exact reuse terms: which BMRB archive/data terms govern the metabolomics subset, whether CC0 or any license is actually asserted, and whether redistribution and the intended downstream use are permitted. The registry has automated_ingestion_approved: false and the policy page is documented as not specifying a standard reuse license.",
+    "Whether raw/time-domain data is retrievable over HTTPS from bmrb.io or only via ftp.bmrb.io, plus per-file sizes and counts, so a bounded byte/file cap can be set before any download.",
+    "Registry key mismatch: this source is stored in NMRx_Chemical_Source_Registry.json as id \"bmrb\" (entry number 5), not \"bmrb_metabolomics\". Resolve the canonical id before wiring adapter keys, or registry lookups will miss."
+  ],
+  "notes": "Metabolomics portal mixes experimental and theoretical entries; preserve the distinction per record. The data policy states free access but does not itself specify a reuse licence -- do not assign CC0 to this subset.",
+  "record_mapping": {
+    "_status": "provisional -- no real response has been observed; paths are placeholders",
+    "records_path": "",
+    "molecule": {
+      "inchikey": {
+        "path": "inchikey"
+      },
+      "smiles": {
+        "path": "smiles"
+      },
+      "formula": {
+        "path": "formula"
+      },
+      "atom_count": {
+        "path": "atom_count",
+        "transform": "int"
+      }
+    },
+    "source": {
+      "record_id": {
+        "path": "id"
+      },
+      "url": {
+        "path": "url"
+      },
+      "licence": {
+        "path": "license"
+      }
+    },
+    "nucleus": {
+      "path": "nucleus"
+    },
+    "conditions": {
+      "solvent": {
+        "path": "solvent"
+      },
+      "temperature_k": {
+        "path": "temperature_k",
+        "transform": "float"
+      },
+      "reference_compound": {
+        "path": "reference"
+      },
+      "spectrometer_frequency_mhz": {
+        "path": "frequency",
+        "transform": "float"
+      }
+    },
+    "shifts": {
+      "path": "peaks",
+      "atom_index": {
+        "path": "atom",
+        "transform": "int"
+      },
+      "element": {
+        "path": "element"
+      },
+      "shift_ppm": {
+        "path": "ppm",
+        "transform": "float"
+      },
+      "multiplicity": {
+        "path": "multiplicity"
+      }
+    }
+  }
+}

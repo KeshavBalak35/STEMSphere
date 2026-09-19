@@ -1,0 +1,39 @@
+{
+  "_SYNTHETIC": "Made-up payload for mapping-engine tests. Not real data. Not a measurement.",
+  "results": [
+    {
+      "id": "SYN-0001",
+      "structure": {
+        "inchikey": "AAAAAAAAAAAAAA-BBBBBBBBBB-N",
+        "smiles": "CC",
+        "formula": "C2H6",
+        "heavy_atoms": 2
+      },
+      "spectrum": {
+        "nucleus": "13C",
+        "solvent": "CDCl3",
+        "temperature_celsius": 25,
+        "reference": "TMS",
+        "frequency": 100.6,
+        "peaks": [
+          {"atom": 0, "el": "C", "ppm": "10.5", "mult": "q"},
+          {"atom": 1, "el": "C", "ppm": "20.25", "mult": "q"}
+        ]
+      },
+      "licence": "CC BY 4.0",
+      "url": "https://example.invalid/records/SYN-0001"
+    },
+    {
+      "id": "SYN-0002",
+      "structure": {"inchikey": "CCCCCCCCCCCCCC-DDDDDDDDDD-N"},
+      "spectrum": {
+        "nucleus": "1H",
+        "peaks": [
+          {"el": "H", "ppm": "7.26"},
+          {"el": "H", "ppm": "bad-value"}
+        ]
+      },
+      "url": "https://example.invalid/records/SYN-0002"
+    }
+  ]
+}

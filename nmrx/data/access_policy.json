@@ -1,0 +1,193 @@
+{
+  "policy_version": "2026-09-17",
+  "_note": [
+    "This file is the ONLY thing that grants NMRx permission to touch a remote host.",
+    "The 50-entry source registry is a RESEARCH DIRECTORY. Presence in the registry grants nothing.",
+    "A host is reachable by NMRx only if it appears in allowed_hosts here AND is allowed by the",
+    "Claude Code cloud environment's own 'Allowed domains' network setting. Those are two separate",
+    "gates and this file cannot open the second one."
+  ],
+  "pilot": {
+    "name": "NMRx small pilot",
+    "status": "authorized_but_network_blocked",
+    "provenance": "Hostnames taken from the NMRx chemical database map, section 'Domains for the current pilot and future expansion'.",
+    "allowed_hosts": [
+      {
+        "host": "pubchem.ncbi.nlm.nih.gov",
+        "source_id": "pubchem",
+        "purpose": "PUG REST identity and descriptor lookup; PUG View source-attributed reports",
+        "documented_rate_limit": "<= 5 requests per second across the whole client",
+        "hostname_caution": "Bulk collections are served from ftp.ncbi.nlm.nih.gov, a different hostname that is NOT granted. A download link followed off the API host will be refused, which is intended."
+      },
+      {
+        "host": "nmrshiftdb.nmr.uni-koeln.de",
+        "source_id": "nmrshiftdb2",
+        "purpose": "Assigned 1H/13C NMR spectra and peak lists via the documented API",
+        "documented_rate_limit": null,
+        "hostname_caution": "No www variant is documented -- do not invent one. Bulk downloads leave this host entirely for sourceforge.net, which commonly redirects again to a mirror. Neither is granted, and cross-host redirects are refused rather than followed."
+      },
+      {
+        "host": "www.ebi.ac.uk",
+        "source_id": "ebi_shared",
+        "purpose": "ChEMBL bioactivity, ChEBI identity, UniChem cross-references (three services, one host)",
+        "documented_rate_limit": null,
+        "hostname_caution": "SCOPE WARNING: this single hostname serves ChEMBL (/chembl/...), ChEBI (/chebi/...), UniChem (/unichem/...), PDBe (/pdbe/...) and the EBI-hosted Europe PMC service. Allowlisting it grants all of them at once -- a materially wider grant than 'ChEMBL'. Bulk releases live on ftp.ebi.ac.uk and documentation on chembl.gitbook.io; neither is granted."
+      },
+      {
+        "host": "data.rcsb.org",
+        "source_id": "rcsb",
+        "purpose": "PDB entry and ligand metadata",
+        "documented_rate_limit": null,
+        "hostname_caution": "Metadata only. Coordinate files are on files.rcsb.org and every documentation page these routes cite is on www.rcsb.org -- neither is granted."
+      },
+      {
+        "host": "search.rcsb.org",
+        "source_id": "rcsb",
+        "purpose": "PDB structure search",
+        "documented_rate_limit": null,
+        "hostname_caution": "Search returns identifiers, not metadata, so every useful search implies a second call to data.rcsb.org. One logical operation spans two granted hosts; the per-job request cap must account for both."
+      },
+      {
+        "host": "www.bindingdb.org",
+        "source_id": "bindingdb",
+        "purpose": "Measured protein-ligand affinity lookup",
+        "documented_rate_limit": null,
+        "hostname_caution": "The sharpest hostname trap in the pilot. The provider's own material uses three spellings: www.bindingdb.org (granted), bindingdb.org with no www (documented as carrying API endpoints -- a DIFFERENT hostname, not granted), and ww.bindingdb.org (note 'ww', not a typo -- the official download-page alias, not granted). Exact matching is deliberate: confirm which base URL the documentation actually prints before requesting any change."
+      }
+    ],
+    "caps": {
+      "_provenance": "proposed_default_awaiting_user_confirmation",
+      "_why": "No numeric byte or request cap was recorded in the handoff material. These conservative defaults are enforced now so the pilot cannot silently become a bulk download. Raise them only on an explicit instruction.",
+      "max_requests_per_job": 50,
+      "max_bytes_per_response": 2097152,
+      "max_bytes_per_job": 10485760,
+      "min_seconds_between_requests_per_host": 0.25,
+      "request_timeout_seconds": 30,
+      "follow_redirects_to_new_hosts": false
+    },
+    "_documented_but_not_granted": {
+      "_why": "Named here so nobody mistakes them for part of the pilot grant.",
+      "hosts": [
+        {
+          "host": "ftp.ncbi.nlm.nih.gov",
+          "for": "pubchem",
+          "role": "bulk file delivery"
+        },
+        {
+          "host": "sourceforge.net",
+          "for": "nmrshiftdb2",
+          "role": "bulk-download landing, redirects to mirrors"
+        },
+        {
+          "host": "ftp.ebi.ac.uk",
+          "for": "chembl/chebi",
+          "role": "bulk releases"
+        },
+        {
+          "host": "chembl.gitbook.io",
+          "for": "chembl",
+          "role": "documentation and licensing"
+        },
+        {
+          "host": "files.rcsb.org",
+          "for": "rcsb",
+          "role": "coordinate file downloads"
+        },
+        {
+          "host": "www.rcsb.org",
+          "for": "rcsb",
+          "role": "documentation and the CC0 usage policy"
+        },
+        {
+          "host": "bindingdb.org",
+          "for": "bindingdb",
+          "role": "provider-documented API endpoints (no www)"
+        },
+        {
+          "host": "ww.bindingdb.org",
+          "for": "bindingdb",
+          "role": "official download-page alias"
+        }
+      ]
+    }
+  },
+  "candidate_expansion": {
+    "_note": "Assessed, NOT granted. Needs an explicit user decision AND an environment network change before any request is made.",
+    "hosts": [
+      {
+        "host": "bmrb.io",
+        "source_id": "bmrb",
+        "purpose": "metabolomics portal and HTTPS downloads"
+      },
+      {
+        "host": "api.bmrb.io",
+        "source_id": "bmrb",
+        "purpose": "documented public API"
+      },
+      {
+        "host": "nmrxiv.org",
+        "source_id": "nmrxiv",
+        "purpose": "public search API with solvent/temperature/nucleus filters"
+      },
+      {
+        "host": "www.chemotion-repository.net",
+        "source_id": "chemotion",
+        "purpose": "public molecule/reaction API and BagIt download-link discovery"
+      }
+    ]
+  },
+  "prohibited_hosts": [
+    {
+      "host": "sdbs.db.aist.go.jp",
+      "source_id": "sdbs",
+      "reason": "Provider disclaimer prohibits automated robot collection and large downloads. Manual reference only. Never add to allowed_hosts.",
+      "evidence": "https://sdbs.db.aist.go.jp/Htmls/disclaimer_eng.html"
+    }
+  ],
+  "credential_or_licence_required": [
+    {
+      "source_id": "drugbank",
+      "blocker": "commercial licence agreement"
+    },
+    {
+      "source_id": "cas_common",
+      "blocker": "CC BY-NC 4.0 records; not licensed for a commercial product"
+    },
+    {
+      "source_id": "spectrabase",
+      "blocker": "EULA restricts redistribution, service provision and ML use"
+    },
+    {
+      "source_id": "csd",
+      "blocker": "full CSD access requires a licence"
+    },
+    {
+      "source_id": "sabiork",
+      "blocker": "commercial use requires a negotiated licence"
+    },
+    {
+      "source_id": "gtopdb",
+      "blocker": "registration/API key from 2026; commercial access fees"
+    },
+    {
+      "source_id": "nist",
+      "blocker": "Standard Reference Data compilation terms; collection-specific review"
+    },
+    {
+      "source_id": "ramanbase",
+      "blocker": "API landing redirects to login; account required"
+    },
+    {
+      "source_id": "materialsproject",
+      "blocker": "account API key"
+    },
+    {
+      "source_id": "comptox",
+      "blocker": "free API key, still an account action"
+    },
+    {
+      "source_id": "openfda",
+      "blocker": "free API key recommended for sustained access"
+    }
+  ]
+}

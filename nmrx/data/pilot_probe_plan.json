@@ -1,0 +1,58 @@
+{
+  "plan_version": "2026-09-17",
+  "_scope": [
+    "One step per granted pilot host. The environment's egress policy decides at CONNECT,",
+    "which happens before any path is sent, so one request per host is sufficient to",
+    "establish reachability and is the smallest operation that answers the question.",
+    "No step downloads a dataset. Each fetches a documentation or single-record endpoint."
+  ],
+  "_url_provenance": [
+    "documented = this exact URL appears in the NMRx chemical database map.",
+    "inferred   = composed from the map's description of the service; the exact path is",
+    "             unconfirmed and must be checked against the official schema before use."
+  ],
+  "steps": [
+    {
+      "source_id": "pubchem",
+      "purpose": "identity lookup for one compound (PUG REST)",
+      "url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/2244/property/MolecularFormula,InChIKey/JSON",
+      "expect": "small JSON with formula and InChIKey for one CID",
+      "note": "inferred path built from the map's documented PUG REST access route; one compound, no bulk"
+    },
+    {
+      "source_id": "nmrshiftdb2",
+      "purpose": "read the official API documentation index",
+      "url": "https://nmrshiftdb.nmr.uni-koeln.de/api-docs/",
+      "expect": "Swagger API documentation",
+      "note": "documented: this URL is listed in the map as the official API documentation"
+    },
+    {
+      "source_id": "chebi",
+      "purpose": "read the official ChEBI API documentation index",
+      "url": "https://www.ebi.ac.uk/chebi/backend/api/docs/",
+      "expect": "ChEBI REST API documentation",
+      "note": "documented: listed in the map as ChEBI's official API docs. Also establishes reachability of www.ebi.ac.uk, which serves ChEMBL and UniChem too"
+    },
+    {
+      "source_id": "rcsb",
+      "purpose": "metadata for one PDB entry",
+      "url": "https://data.rcsb.org/rest/v1/core/entry/1CBS",
+      "expect": "JSON metadata for a single structure",
+      "note": "inferred path from the map's description of the Data API; one entry, no coordinate files"
+    },
+    {
+      "source_id": "rcsb",
+      "purpose": "confirm the search host answers",
+      "url": "https://search.rcsb.org/rcsbsearch/v2/query",
+      "expect": "an error or usage response; a GET without a query is expected to be rejected by the service, which still proves reachability",
+      "note": "inferred path from the map's description of the Search API"
+    },
+    {
+      "source_id": "bindingdb",
+      "purpose": "read the official REST API documentation page",
+      "url": "https://www.bindingdb.org/rwd/bind/BindingDBRESTfulAPI.jsp",
+      "expect": "API documentation page",
+      "note": "documented: this URL is listed in the map as BindingDB's official API documentation"
+    }
+  ]
+}
